@@ -54,92 +54,98 @@ def task(ack, say, command):
                 i = i + 1
             say(response)
 
-# # home page header
-# main_block = [
-#     {
-#     "type": "divider"
-#     },
-#     {
-#     "type": "section",
-#     "text": {
-#         "type": "mrkdwn",
-#         "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
-#             }
-#         },
-#     {
-#     "type": "divider"
-#     },
-#     {
-#     "type": "actions",
-#     "elements": [
-#         {
-#             "type": "button",
-#             "text": {
-#                 "type": "plain_text",
-#                 "text": "Add New Task",
-#                 "emoji": true
-#                     },
-#             "value": "click_me_123",
-#             "action_id": "actionId-0"
-#         }
-#         ]
-#     },
-#     {
-#     "type": "divider"
-#     },
-#     {
-#     "type": "header",
-#     "text": {
-#         "type": "plain_text",
-#         "text": "Team Tasks",
-#         "emoji": true
-#         }
-#     },
-#     {
-#     "type": "divider"
-#     }
-# ]
+# home page header
+main_block = [
+    {
+    "type": "divider"
+    },
+    {
+    "type": "section",
+    "text": {
+        "type": "mrkdwn",
+        "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
+            }
+        },
+    {
+    "type": "divider"
+    },
+    {
+    "type": "actions",
+    "elements": [
+        {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": "Add New Task",
+                "emoji": True
+                    },
+            "value": "click_me_123",
+            "action_id": "actionId-0"
+        }
+        ]
+    },
+    {
+    "type": "divider"
+    },
+    {
+    "type": "header",
+    "text": {
+        "type": "plain_text",
+        "text": "Team Tasks",
+        "emoji": True
+        }
+    },
+    {
+    "type": "divider"
+    }
+]
+
+# basic task block --> update with more features after it starts working
+task_block = [
+    {
+    "type": "context",
+    "elements": [
+        {
+        "type": "markdown",
+        "text": "PLACEHOLDER" # make responsive  to input from task list
+        }
+    ]
+    },
+    {
+    "type": "divider"
+    }
+]
+
+# # returns list of data from table
+# def get_tasks(data):
+#     cur = data.cursor()
+#     data.execute("SELECT * FROM tasks")
 #
-# # basic task block --> update with more features after it starts working
-# task_block = [
-#     {
-#     "type": "context",
-#     "elements": [
-#         {
-#         "type": "markdown",
-#         "text": "PLACEHOLDER" # make responsive  to input from task list
-#         }
-#     ]
-#     },
-#     {
-#     "type": "divider"
-#     }
-# ]
+#     rows = cur.fetchall()
+#     ret_me = []
+#
+#     for r in rows:
+#         ret_me.append(r)
+#
+#     return ret_me
 
-# returns list of data from table
-def get_tasks(data):
-    cur = data.cursor()
-    data.execute("SELECT * FROM tasks")
-
-    rows = cur.fetchall()
-    ret_me = []
-
-    for r in rows:
-        ret_me.append(r)
-
-    return ret_me
-
-# no clue if this works, but takes in list of task names and adds appropriate number of blocks in UI
-# need function that gets all task from db
-def build_home(lst, head, task):
+# who knows if this works, but builds home page based off of tasks in db
+def build_home(head, task):
     block = [head]
 
-    for t in lst:
+    conn = sqlite3.connect('tasks.db')
+    cur = conn.cursor()
+    conn.execute("SELECT * FROM tasks")
+
+    rows = cur.fetchall()
+
+    for r in rows:
         block.append(task)
 
     return block
 
 # listens to events and is called when task if open
+# THIS PART IS STILL BUGGY...
 @app.event("app_home_opened")
 def update_home(client, event, logger):
     try:
@@ -148,51 +154,51 @@ def update_home(client, event, logger):
         view= {
             "type": "home",
             "callback_id": "home_view",
-            "blocks": #build_home(get_tasks(conn), main_block, task_block)
-            [
-                {
-                "type": "divider"
-                },
-                {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
-                        }
-                    },
-                {
-                "type": "divider"
-                },
-                {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Add New Task",
-                            "emoji": true
-                                },
-                        "value": "click_me_123",
-                        "action_id": "actionId-0"
-                    }
-                    ]
-                },
-                {
-                "type": "divider"
-                },
-                {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Team Tasks",
-                    "emoji": true
-                    }
-                },
-                {
-                "type": "divider"
-                }
-            ]
+            "blocks": json.dumps(build_home(main_block, task_block))
+            # [
+            #     {
+            #     "type": "divider"
+            #     },
+            #     {
+            #     "type": "section",
+            #     "text": {
+            #         "type": "mrkdwn",
+            #         "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
+            #             }
+            #         },
+            #     {
+            #     "type": "divider"
+            #     },
+            #     {
+            #     "type": "actions",
+            #     "elements": [
+            #         {
+            #             "type": "button",
+            #             "text": {
+            #                 "type": "plain_text",
+            #                 "text": "Add New Task",
+            #                 "emoji": True
+            #                     },
+            #             "value": "click_me_123",
+            #             "action_id": "actionId-0"
+            #         }
+            #         ]
+            #     },
+            #     {
+            #     "type": "divider"
+            #     },
+            #     {
+            #     "type": "header",
+            #     "text": {
+            #         "type": "plain_text",
+            #         "text": "Team Tasks",
+            #         "emoji": True
+            #         }
+            #     },
+            #     {
+            #     "type": "divider"
+            #     }
+            # ]
         }
     )
     except Exception as e:
