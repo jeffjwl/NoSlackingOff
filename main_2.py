@@ -56,20 +56,20 @@ def task(ack, say, command):
 
 # home page header
 main_block = [
-    {
+{
     "type": "divider"
     },
-    {
+{
     "type": "section",
     "text": {
         "type": "mrkdwn",
         "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
             }
         },
-    {
+{
     "type": "divider"
     },
-    {
+{
     "type": "actions",
     "elements": [
         {
@@ -84,10 +84,10 @@ main_block = [
         }
         ]
     },
-    {
+{
     "type": "divider"
     },
-    {
+{
     "type": "header",
     "text": {
         "type": "plain_text",
@@ -95,26 +95,28 @@ main_block = [
         "emoji": True
         }
     },
-    {
+{
     "type": "divider"
     }
-]
+    ]
+
 
 # basic task block --> update with more features after it starts working
-task_block = [
-    {
+task_block =[
+{
     "type": "context",
     "elements": [
         {
-        "type": "markdown",
-        "text": "PLACEHOLDER" # make responsive  to input from task list
+        "type": "mrkdwn",
+        "text": "PLACEHOLDER" # TO DO: make responsive  to input from task list
         }
     ]
     },
-    {
+{
     "type": "divider"
     }
-]
+    ]
+
 
 # # returns list of data from table
 # def get_tasks(data):
@@ -129,32 +131,36 @@ task_block = [
 #
 #     return ret_me
 
-# who knows if this works, but builds home page based off of tasks in db
+# who knows if this works, but builds home page based off of tasks in db (yay it works now)
+# makes list responsive to number of tasks in db
 def build_home(head, task):
-    block = [head]
+    block = head
 
     conn = sqlite3.connect('tasks.db')
-    cur = conn.cursor()
-    conn.execute("SELECT * FROM tasks")
+    with conn:
+        for row in conn.execute("SELECT * FROM tasks"):
+            block = block + task
 
-    rows = cur.fetchall()
+    view = {"type": "home", "callback_id": "home_view", "blocks": block}
 
-    for r in rows:
-        block.append(task)
+    ret_view = json.dumps(view)
+    # TESTING PURPOSES
+    # print(ret_view)
 
-    return block
+    return ret_view
 
-# listens to events and is called when task if open
-# THIS PART IS STILL BUGGY...
+# listens to events and is called when home is opened. updates home view based on what is in db
 @app.event("app_home_opened")
 def update_home(client, event, logger):
     try:
+        print("here")
         client.views_publish(
         user_id= event["user"],
-        view= {
-            "type": "home",
-            "callback_id": "home_view",
-            "blocks": json.dumps(build_home(main_block, task_block))
+        view= build_home(main_block, task_block)
+            # TESTING PURPOSES:
+            # "type": "home",
+            # "callback_id": "home_view",
+            # "blocks": build_home(main_block, task_block)
             # [
             #     {
             #     "type": "divider"
@@ -199,7 +205,7 @@ def update_home(client, event, logger):
             #     "type": "divider"
             #     }
             # ]
-        }
+
     )
     except Exception as e:
         logger.error(f"Error publishing home tabe: {e}")
