@@ -19,7 +19,7 @@ def handle_message(message):
     tasks = []
     for subtree in chunked.subtrees():
         if subtree.label() == 'naive_task':
-            key_words = {}
+            key_words = []
             raw_task = ""
             for i, l in enumerate(subtree.leaves()):
                 if i != 0:
