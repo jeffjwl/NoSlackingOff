@@ -54,23 +54,13 @@ def task(ack, say, command):
                 i = i + 1
             say(response)
 
-# # returns list of data from table
-# def get_tasks(data):
-#     cur = data.cursor()
-#     data.execute("SELECT * FROM tasks")
-#
-#     rows = cur.fetchall()
-#     ret_me = []
-#
-#     for r in rows:
-#         ret_me.append(r)
-#
-#     return ret_me
-
 # who knows if this works, but builds home page based off of tasks in db (yay it works now)
 # makes list responsive to number of tasks in db
+# makes task name responsive to entry in db
 def build_home():
-    # home page header
+
+    # home page header --> update with modal for add task
+    # add button functionality
     main_block = [
     {
         "type": "divider"
@@ -79,7 +69,7 @@ def build_home():
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
+            "text": "Welcome to *Slacker*, an interactive to-do list application. This is your *home page*, where you can view and edit your to-do list."
                 }
             },
     {
@@ -122,7 +112,8 @@ def build_home():
     with conn:
         for row in conn.execute("SELECT * FROM tasks"):
 
-            # basic task block --> update with more features after it starts working
+            # basic task block --> add modals for edit task, update user/date/status pickers to be stored in db
+            # add button functionality
             task_block =[
             		{
             			"type": "section",
@@ -221,6 +212,24 @@ def build_home():
             						"emoji": True,
             						"text": "Completed"
             					},
+                                "confirm": {
+                                    "title": {
+                                        "type": "plain_text",
+                                        "text": "Mark Task as Complete?"
+                                        },
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": "Marking the task as complete will remove it from your to-do list"
+                                        },
+                                    "confirm": {
+                                        "type": "plain_text",
+                                        "text": "Do it"
+                                        },
+                                    "deny": {
+                                        "type": "plain_text",
+                                        "text": "Cancel"
+                                        }
+                                    },
             					"style": "primary",
             					"value": "click_me_123"
             				},
@@ -229,8 +238,26 @@ def build_home():
             					"text": {
             						"type": "plain_text",
             						"emoji": True,
-            						"text": "Backlogged"
+            						"text": "Ask for Help"
             					},
+                                "confirm": {
+                                    "title": {
+                                        "type": "plain_text",
+                                        "text": "Ask for Help?"
+                                        },
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": "Asking for help will ping your team members for assistance"
+                                        },
+                                    "confirm": {
+                                        "type": "plain_text",
+                                        "text": "Do it"
+                                        },
+                                    "deny": {
+                                        "type": "plain_text",
+                                        "text": "Cancel"
+                                        }
+                                    },
             					"style": "danger",
             					"value": "click_me_123"
             				},
