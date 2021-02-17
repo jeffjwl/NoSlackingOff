@@ -189,8 +189,6 @@ def build_home():
             							"text": "in progress",
             							"emoji": True
             						}
-            					},
-            						"value": "value-2"
             					}
             				],
             				"action_id": "static_select-action"
