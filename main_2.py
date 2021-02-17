@@ -190,12 +190,6 @@ def build_home():
             							"emoji": True
             						}
             					},
-            					{
-            						"text": {
-            							"type": "plain_text",
-            							"text": "need help",
-            							"emoji": True
-            						},
             						"value": "value-2"
             					}
             				],
