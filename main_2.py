@@ -54,70 +54,6 @@ def task(ack, say, command):
                 i = i + 1
             say(response)
 
-# home page header
-main_block = [
-{
-    "type": "divider"
-    },
-{
-    "type": "section",
-    "text": {
-        "type": "mrkdwn",
-        "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
-            }
-        },
-{
-    "type": "divider"
-    },
-{
-    "type": "actions",
-    "elements": [
-        {
-            "type": "button",
-            "text": {
-                "type": "plain_text",
-                "text": "Add New Task",
-                "emoji": True
-                    },
-            "value": "click_me_123",
-            "action_id": "actionId-0"
-        }
-        ]
-    },
-{
-    "type": "divider"
-    },
-{
-    "type": "header",
-    "text": {
-        "type": "plain_text",
-        "text": "Team Tasks",
-        "emoji": True
-        }
-    },
-{
-    "type": "divider"
-    }
-    ]
-
-
-# basic task block --> update with more features after it starts working
-task_block =[
-{
-    "type": "context",
-    "elements": [
-        {
-        "type": "mrkdwn",
-        "text": "PLACEHOLDER" # TO DO: make responsive  to input from task list
-        }
-    ]
-    },
-{
-    "type": "divider"
-    }
-    ]
-
-
 # # returns list of data from table
 # def get_tasks(data):
 #     cur = data.cursor()
@@ -133,13 +69,188 @@ task_block =[
 
 # who knows if this works, but builds home page based off of tasks in db (yay it works now)
 # makes list responsive to number of tasks in db
-def build_home(head, task):
-    block = head
+def build_home():
+    # home page header
+    main_block = [
+    {
+        "type": "divider"
+        },
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
+                }
+            },
+    {
+        "type": "divider"
+        },
+    {
+        "type": "actions",
+        "elements": [
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Add New Task",
+                    "emoji": True
+                        },
+                "value": "click_me_123",
+                "action_id": "actionId-0"
+            }
+            ]
+        },
+    {
+        "type": "divider"
+        },
+    {
+        "type": "header",
+        "text": {
+            "type": "plain_text",
+            "text": "Team Tasks",
+            "emoji": True
+            }
+        },
+    {
+        "type": "divider"
+        }
+        ]
+
+    block = main_block
 
     conn = sqlite3.connect('tasks.db')
     with conn:
         for row in conn.execute("SELECT * FROM tasks"):
-            block = block + task
+
+            # basic task block --> update with more features after it starts working
+            task_block =[
+            		{
+            			"type": "section",
+            			"fields": [
+            				{
+            					"type": "mrkdwn",
+            					"text": "*Task:*\n" + row[0]
+            				},
+            				{
+            					"type": "mrkdwn",
+            					"text": "*Description:*\nPut any extra details here."
+            				}
+            			]
+            		},
+            		{
+            			"type": "section",
+            			"text": {
+            				"type": "mrkdwn",
+            				"text": "*Deadline:*"
+            			},
+            			"accessory": {
+            				"type": "datepicker",
+            				"initial_date": "1990-04-28",
+            				"placeholder": {
+            					"type": "plain_text",
+            					"text": "Select a date",
+            					"emoji": True
+            				},
+            				"action_id": "datepicker-action"
+            			}
+            		},
+            		{
+            			"type": "section",
+            			"text": {
+            				"type": "mrkdwn",
+            				"text": "*Team Member Responsible:*"
+            			},
+            			"accessory": {
+            				"type": "users_select",
+            				"placeholder": {
+            					"type": "plain_text",
+            					"text": "Select a user",
+            					"emoji": True
+            				},
+            				"action_id": "users_select-action"
+            			}
+            		},
+            		{
+            			"type": "section",
+            			"text": {
+            				"type": "mrkdwn",
+            				"text": "*Status:*"
+            			},
+            			"accessory": {
+            				"type": "static_select",
+            				"placeholder": {
+            					"type": "plain_text",
+            					"text": "Select a status",
+            					"emoji": True
+            				},
+            				"options": [
+            					{
+            						"text": {
+            							"type": "plain_text",
+            							"text": "in progress",
+            							"emoji": True
+            						},
+            						"value": "value-0"
+            					},
+            					{
+            						"text": {
+            							"type": "plain_text",
+            							"text": "completed",
+            							"emoji": True
+            						}
+            					},
+            					{
+            						"text": {
+            							"type": "plain_text",
+            							"text": "backlogged",
+            							"emoji": True
+            						},
+            						"value": "value-2"
+            					}
+            				],
+            				"action_id": "static_select-action"
+            			}
+            		},
+            		{
+            			"type": "actions",
+            			"elements": [
+            				{
+            					"type": "button",
+            					"text": {
+            						"type": "plain_text",
+            						"emoji": True,
+            						"text": "Completed"
+            					},
+            					"style": "primary",
+            					"value": "click_me_123"
+            				},
+            				{
+            					"type": "button",
+            					"text": {
+            						"type": "plain_text",
+            						"emoji": True,
+            						"text": "Backlogged"
+            					},
+            					"style": "danger",
+            					"value": "click_me_123"
+            				},
+            				{
+            					"type": "button",
+            					"text": {
+            						"type": "plain_text",
+            						"emoji": True,
+            						"text": "Edit Task"
+            					},
+            					"value": "click_me_123"
+            				}
+            			]
+            		},
+            		{
+            			"type": "divider"
+            		}
+            	]
+
+            block = block + task_block
 
     view = {"type": "home", "callback_id": "home_view", "blocks": block}
 
@@ -153,62 +264,20 @@ def build_home(head, task):
 @app.event("app_home_opened")
 def update_home(client, event, logger):
     try:
-        print("here")
         client.views_publish(
         user_id= event["user"],
-        view= build_home(main_block, task_block)
-            # TESTING PURPOSES:
-            # "type": "home",
-            # "callback_id": "home_view",
-            # "blocks": build_home(main_block, task_block)
-            # [
-            #     {
-            #     "type": "divider"
-            #     },
-            #     {
-            #     "type": "section",
-            #     "text": {
-            #         "type": "mrkdwn",
-            #         "text": "Welcome to Slacker, an interactive to-do list application. This is your home page, where you can view and edit your to-do list."
-            #             }
-            #         },
-            #     {
-            #     "type": "divider"
-            #     },
-            #     {
-            #     "type": "actions",
-            #     "elements": [
-            #         {
-            #             "type": "button",
-            #             "text": {
-            #                 "type": "plain_text",
-            #                 "text": "Add New Task",
-            #                 "emoji": True
-            #                     },
-            #             "value": "click_me_123",
-            #             "action_id": "actionId-0"
-            #         }
-            #         ]
-            #     },
-            #     {
-            #     "type": "divider"
-            #     },
-            #     {
-            #     "type": "header",
-            #     "text": {
-            #         "type": "plain_text",
-            #         "text": "Team Tasks",
-            #         "emoji": True
-            #         }
-            #     },
-            #     {
-            #     "type": "divider"
-            #     }
-            # ]
-
+        view= build_home()
     )
     except Exception as e:
         logger.error(f"Error publishing home tabe: {e}")
 
 if __name__ == "__main__":
     app.start(port=int(os.environ.get("PORT", 3000)))
+
+
+# NOTES:
+# - database needs to have attributes for user, status, deadline, description
+# - database needs to handle users so it is compatible with user select
+# - currently cannot input tasks with spaces (can we change input of slash commands to CSVs maybe?)
+# - future: possibly get rid of command line and make it completely usable through home page
+# - new feature possibility --> ask for help instead of backlog
