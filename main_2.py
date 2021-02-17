@@ -69,7 +69,7 @@ def build_home():
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": "Welcome to *Slacker*, an interactive to-do list application. This is your *home page*, where you can view and edit your to-do list."
+            "text": "Welcome to *Slacker* :coffee:, an interactive to-do list application.\n \nThis is your *home page*, where you can view :eyes: and edit :pencil2: your to-do list."
                 }
             },
     {
