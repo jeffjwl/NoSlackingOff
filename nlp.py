@@ -5,14 +5,12 @@ import datetime
 import sqlite3
 from nltk.tokenize import word_tokenize
 
-
-
-def handle_message(message):
+def parse_tasks(message: str) -> 'list[dict]':
     tokenized_message = word_tokenize(message)
     tags = nltk.pos_tag(tokenized_message)
-    # tags is a list of tuples, [0] == word, [1] == part of speech
+    # Tags: [(word, part_of_speech)...]
     tags = [t for t in tags if t[1] != 'DT']
-    # cleaning unnecessary words
+    # Clean unnecessary words
     naive_pattern = r"""naive_task: {<TO.?|MD.?><VB.?>(<IN>)?<NN.?>}"""
     parser = nltk.RegexpParser(naive_pattern)
     chunked = parser.parse(tags)
@@ -26,20 +24,17 @@ def handle_message(message):
                     raw_task = raw_task + " " + l[0]
                 if 'VB' in l[1] or 'NN' in l[1]: # if the leave contains a noun or a verb, we should treat it as a key word
                     key_words.append(l[0])
-            cur_task = {'task' : raw_task, 'key_words' : key_words}
-            if not is_redundant(cur_task):
-                tasks.append(cur_task)
+            cur_task = {'task' : raw_task.strip(), 'key_words' : key_words}
+            # TODO: Redundant tasks
+            #if not is_redundant(cur_task):
+            #    tasks.append(cur_task)
+            tasks.append(cur_task)
     return tasks
 
-
-# checks if a task is redundant
+# Check if a task is redundant
 def is_redundant(task):
     with sqlite3.connect('tasks.db') as conn:
         for row in conn.execute("QUERY FOR GETTING KEY WORDS"):
             if set(task['key_words']) == set(row['key_words']):
                 return True
     return False
-
-
-
-

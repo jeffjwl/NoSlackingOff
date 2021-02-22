@@ -1,66 +1,9 @@
-import argparse
-import io
 import json
-import os
-import re
 import sqlite3
 
-from slack_bolt import App
-
-config = json.load(open('config.json'))
-
-# Database
-conn = sqlite3.connect('tasks.db')
-with conn:
-    conn.execute('CREATE TABLE IF NOT EXISTS tasks (task TEXT, date INTEGER, person TEXT)')
-
-# Argument parsing
-parser = argparse.ArgumentParser()
-subparsers = parser.add_subparsers(dest='subcommand')
-add_parser = subparsers.add_parser('add')
-add_parser.add_argument('task')
-remove_parser = subparsers.add_parser('remove')
-remove_parser.add_argument('task')
-show_parser = subparsers.add_parser('show')
-
-# TODO: Regex arguments
-#arg_pattern = re.compile('', re.IGNORECASE)
-
-app = App(
-    token = config['token'],
-    signing_secret = config['signingSecret'])
-
-@app.command('/task')
-def task(ack, say, command):
-    ack()
-    try:
-        # TODO: Complex splitting
-        args = parser.parse_args(command['text'].split(' '))
-    except:
-        say('Argument error')
-        return
-    conn = sqlite3.connect('tasks.db')
-    with conn:
-        if args.subcommand == 'add':
-            conn.execute('INSERT INTO tasks VALUES (?, NULL, NULL)',
-                (args.task,))
-        elif args.subcommand == 'remove':
-            conn.execute('DELETE FROM tasks WHERE task=?', (args.task,))
-        elif args.subcommand == 'show':
-            response = ''
-            i = 1
-            for row in conn.execute('SELECT * FROM tasks'):
-                response = response + str(i) + '. ' + row[0] + '\n'
-                i = i + 1
-            say(response)
-
-# who knows if this works, but builds home page based off of tasks in db (yay it works now)
-# makes list responsive to number of tasks in db
-# makes task name responsive to entry in db
 def build_home():
-
     # home page header --> update with modal for add task
-    # add button functionality
+    # TODO: Add button functionality
     main_block = [
     {
         "type": "divider"
@@ -280,31 +223,5 @@ def build_home():
             block = block + task_block
 
     view = {"type": "home", "callback_id": "home_view", "blocks": block}
-
     ret_view = json.dumps(view)
-    # TESTING PURPOSES
-    # print(ret_view)
-
     return ret_view
-
-# listens to events and is called when home is opened. updates home view based on what is in db
-@app.event("app_home_opened")
-def update_home(client, event, logger):
-    try:
-        client.views_publish(
-        user_id= event["user"],
-        view= build_home()
-    )
-    except Exception as e:
-        logger.error(f"Error publishing home tabe: {e}")
-
-if __name__ == "__main__":
-    app.start(port=int(os.environ.get("PORT", 3000)))
-
-
-# NOTES:
-# - database needs to have attributes for user, status, deadline, description
-# - database needs to handle users so it is compatible with user select
-# - currently cannot input tasks with spaces (can we change input of slash commands to CSVs maybe?)
-# - future: possibly get rid of command line and make it completely usable through home page
-# - new feature possibility --> ask for help instead of backlog
