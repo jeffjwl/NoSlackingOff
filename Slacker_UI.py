@@ -334,7 +334,7 @@ point_allocation = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*How many sprint points are you assigning this task?* (Please enter an integer)"
+				"text": "*How many hours are you planning on spending on this task?* (Please enter an integer)"
 			}
 		}
 
@@ -392,11 +392,19 @@ completion_detected = {
 			]
 		}
 
+actual_point_allocation = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*How many hours did you spend on this task?* (Please enter an integer)"
+			}
+		}
+
 completion_confirm = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*Your task has been removed to your sprint log*"
+				"text": "Your burndown for this task was: PLACEHOLDER\n*Your task has been removed to your sprint log*"
 			}
 		}
 
