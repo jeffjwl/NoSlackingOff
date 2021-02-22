@@ -101,7 +101,7 @@ def task(ack, say, command):
     ack()
     try:
         # TODO: Complex splitting
-        args = parser.parse_args(command['text'].split(' '))
+        args = parser.parse_args(command['text'].split(', '))
     except:
         say('Argument error')
         return
@@ -125,7 +125,7 @@ def task(ack, say, command):
     ack()
     try:
         # TODO: Complex splitting
-        args = s_parser.parse_args(command['text'].split(' '))
+        args = s_parser.parse_args(command['text'].split(', '))
     except:
         say('Argument error')
         return
@@ -210,21 +210,21 @@ def build_home():
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "Task:" + rowB[0]
+                            "text": "Task: " + rowB[0]
                         }
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "Sprint Points:" + rowB[3]
+                            "text": "Sprint Points: " + rowB[3]
                         }
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "Team Member Responsible:" + rowB[1]
+                            "text": "Team Member Responsible: " + rowB[1]
                         }
                     },
                     {
