@@ -2,16 +2,14 @@
 
 #--SCRUM SET UP ELEMENTS--#
 #   set_up_name -> messages to get initial data for scrum
-#   set_up_date -> " ???
-#   set_up_length -> " ??? DEFAULT TO 1 WEEK SPRINTS
-#   set_up_number -> " ??? KEEP GOING UNTIL "end scrum"
+#   set_up_date -> "
+#   set_up_length -> "
+#   set_up_number -> "
 #   enter_story_message -> message to get user story data
-#   add_story_message_empty -> message to add first user story ??
-#   add_story_message_not_empty -> message to add new user story ??
-#   add_story_story_name -> story name display during story adding (basic unit) ??
+#   add_story_message_empty -> message to add first user story
+#   add_story_message_not_empty -> message to add new user story
+#   add_story_story_name -> story name display during story adding (basic unit)
 #   scrum_confirm  -> message to confirm scrum set up
-#   scrum_in_progress -> message that says scrum cannot be started since there is one in progress
-#   end_scrum -> confirmation that scrum has ended
 
 set_up_name = {
 			"type": "section",
@@ -59,7 +57,7 @@ enter_story_message = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "Enter a user story name (if you have entered all user stories, simply type 'done'):"
+				"text": "Enter user story name:"
 			}
 		}
 
@@ -159,30 +157,6 @@ scrum_confirm = {
 			"text": {
 				"type": "mrkdwn",
 				"text": "*Your scrum has been set up*"
-			}
-		}
-
-scrum_in_progress = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*New scrum cannot be started until current scrum is finished.*"
-			}
-		}
-
-end_scrum = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Your scrum been marked as finished.* You may now start a new scrum"
-			}
-		}
-
-end_scrum_not = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*You current do not have a scrum in progress.*"
 			}
 		}
 
@@ -443,13 +417,13 @@ un_completion_confirm = {
 		}
 
 #--SPRINT REFLECTION ELEMENTS--#
-#   end_sprint -> last day of spring task reminder
+#   last_day_reminder -> last day of spring task reminder
 
-end_sprint = {
+last_day_reminder = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "Okay! I will end your current sprint. Any tasks not completed be automatically added to your next sprint!"
+				"text": "*Reminder:* This is the last day of your sprint. Any tasks not completed by the end of the day will be  automatically added to your next sprint!"
 			}
 		}
 
@@ -506,28 +480,20 @@ home_section_header = {
 }
 
 home_header = {
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Welcome to your Slacker sprint view. This is where  you can view all current tasks and their corresponding user stories! \n \n Using Slacker makes it easy to manager your sprints collaboratively with your group. To start a new scrum session, simple type *'start scrum'* into any public channel. \n \n Slacker automatically listens to your conversations and notes when the group wants to add a new task or complete an existing task on your team's sprint log. When it recognizes this, Slacker will make the appropriate changes to your sprint log. \n \n  During your project, Slacker will listen for the key phrase *'end sprint'*, at which point it will know that you have completed a sprint. \n \n Finally, once your project is finished, simply type *'end scrum'* to end your current scrum session. :)"
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Project name:* PLACEHOLDER"
-			}
-		},
-		{
-			"type": "divider"
-		}
+    "type": "divider"
+},
+{
+    "type": "section",
+    "fields": [
+        {
+            "type": "mrkdwn",
+            "text": "Welcome to your Slacker sprint view. This is where  you can view all current tasks and their corresponding user stories!"
+        }
+    ]
+},
+{
+    "type": "divider"
+}
 
 demo_home = {
 			"type": "divider"
@@ -666,31 +632,3 @@ demo_home = {
 			"type": "divider"
 		}
 	]
-
-#  class to get message payloads (<-- not done, may do something else)
-class SlackerMessages:
-
-    def _get_scenario(self, code):
-
-        # scrum set-up codes
-        if code == "set_up_name":
-            return set_up_name
-        elif code == "enter_story_message":
-            return enter_story_message
-        elif code == "scrum_confirm":
-            return scrum_confirm
-        elif code == "scrum_in_progress":
-            return scrum_in_progress
-        elif code == "end_scrum":
-            return end_scrum
-        elif code == "end_scrum_not":
-            return end_scrum_not
-        return
-        # task adding/sprint planning codes
-        # task completion/sprint reflection codes
-
-    def get_payload(self, code, channel):
-        return{
-            "channel": channel,
-            "blocks": [self._get_scenario(code, channel)]
-        }
