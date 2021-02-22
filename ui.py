@@ -121,7 +121,7 @@ def build_home():
             					{
             						"text": {
             							"type": "plain_text",
-            							"text": "in progress",
+            							"text": "not started",
             							"emoji": True
             						},
             						"value": "value-0"
@@ -129,17 +129,9 @@ def build_home():
             					{
             						"text": {
             							"type": "plain_text",
-            							"text": "completed",
+            							"text": "in progress",
             							"emoji": True
             						}
-            					},
-            					{
-            						"text": {
-            							"type": "plain_text",
-            							"text": "backlogged",
-            							"emoji": True
-            						},
-            						"value": "value-2"
             					}
             				],
             				"action_id": "static_select-action"
