@@ -7,54 +7,53 @@ import re
 import sqlite3
 
 from slack_bolt import App
+
 from nlp import parse_tasks
 from ui import build_home
 
 config = json.load(open('config.json'))
 
-# WARNING: THIS FILE DOES NOT WORK WHATSOEVER
-
-# SQL Database
-with sqlite3.connect('tasks.db') as conn:
-    conn.execute(
-        'CREATE TABLE IF NOT EXISTS user_stories '
-        '(id INTEGER PRIMARY KEY, name TEXT, description TEXT)')
-    conn.execute(
-        'CREATE TABLE IF NOT EXISTS tasks '
-        '(id INTEGER PRIMARY KEY, name TEXT, user_story INTEGER REFERENCES user_stories (id), '
-        'done_date INTEGER, assignee TEXT, sprint INTEGER)')
-
 # Argument parsing
 arg_pattern = re.compile(r'[\w\-]+|"[\w\s\-]+"')
+def split_args(text):
+    return [x.strip('"') for x in re.findall(arg_pattern, text)]
 
-# Task parser (DEPRECATED)
-parser = argparse.ArgumentParser()
-subparsers = parser.add_subparsers(dest='subcommand')
-# /task add ...
-add_parser = subparsers.add_parser('add')
-add_parser.add_argument('name')
-add_parser.add_argument('--assignee')
-# /task remove ...
-remove_parser = subparsers.add_parser('remove')
-remove_parser.add_argument('task')
-# /task show
-show_parser = subparsers.add_parser('show')
-# /task clear
-clear_parser = subparsers.add_parser('clear')
+# Scrum parser
+scrum_parser = argparse.ArgumentParser()
+scrum_subparsers = scrum_parser.add_subparsers(dest='subcommand')
+# start
+start_scrum_parser = scrum_subparsers.add_parser('start')
+start_scrum_parser.add_argument('start_time')
+start_scrum_parser.add_argument('sprint_length')
+# end
+end_scrum_parser = scrum_subparsers.add_parser('end')
+
+# User story parser
+user_story_parser = argparse.ArgumentParser()
+user_story_subparsers = user_story_parser.add_subparsers(dest='subcommand')
+# add
+add_user_story_parser = user_story_subparsers.add_parser('add')
+add_user_story_parser.add_argument('name')
+add_user_story_parser.add_argument('description')
+# TODO: remove
 
 # Backlog parser
 backlog_parser = argparse.ArgumentParser()
-subparsers = parser.add_subparsers(dest='subcommand')
+backlog_subparsers = backlog_parser.add_subparsers(dest='subcommand')
 # add
-add_parser = subparsers.add_parser('add')
+add_parser = backlog_subparsers.add_parser('add')
 add_parser.add_argument('name')
-add_parser.add_argument('--assignee')
+add_parser.add_argument('-story', '--user_story')
+add_parser.add_argument('-a', '--assignee')
+add_parser.add_argument('-eta', '--estimated_time')
 # complete
-complete_parser = subparsers.add_parser('complete')
-add_parser.add_argument('name')
+complete_parser = backlog_subparsers.add_parser('complete')
+add_parser.add_argument('id')
+complete_parser.add_argument('-ata', '--actual_time')
 # remove
-remove_parser = subparsers.add_parser('remove')
-remove_parser.add_argument('task')
+remove_parser = backlog_subparsers.add_parser('remove')
+remove_parser.add_argument('id')
+# TODO: modify
 
 app = App(
     token = config['token'],
@@ -66,6 +65,10 @@ def on_message(message, say):
     with sqlite3.connect('tasks.db') as conn:
         conn.executemany('INSERT INTO tasks VALUES (?, NULL, NULL)', tasks)
 
+@app.command('/scrum')
+def scrum_command(ack, say, command):
+    ack()
+
 @app.command('/userstory')
 def userstory_command(ack, say, command):
     ack()
@@ -74,6 +77,7 @@ def userstory_command(ack, say, command):
 def backlog_command(ack, say, command):
     ack()
 
+'''
 @app.command('/task')
 def task_command(ack, say, command):
     ack()
@@ -98,7 +102,7 @@ def task_command(ack, say, command):
             say(response if response else 'No tasks')
         elif args.subcommand == 'clear':
             conn.execute('DELETE FROM tasks')
-
+'''
 
 '''
 @app.event('app_home_opened')
