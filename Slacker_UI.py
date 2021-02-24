@@ -1,5 +1,12 @@
 #####___UI___#####
 
+# returns status (as a string) of a task
+def task_status(row):
+    if row[7] is not None: #change after get rid of done_date, sprint
+        return "Completed"
+    else:
+        return "In Progress"
+
 # confirmation that scrum session has started
 scrum_confirm = {
 			"type": "section",
