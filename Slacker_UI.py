@@ -1,3 +1,305 @@
+#####___UI___#####
+
+# confirmation that scrum session has started
+scrum_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker has started a new scrum session."
+			}
+		}
+
+# confirmation that user story is added
+story_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker has added this user story."
+			}
+		}
+
+# confirmation that task was added
+add_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker has added this task to your sprint log."
+			}
+		}
+
+# confirmation that task was added
+un_add_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "OK! I won't add this to your sprint log."
+			}
+		}
+
+# confirmation that task was removed
+remove_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker has marked this task as completed."
+			}
+		}
+
+# confirmation that task was added
+un_remove_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "OK! I won't remove this from your sprint log."
+			}
+		}
+
+# confirmation message after detecting natural language detection
+# if adding, ask if they want to add t
+#  if  removing, ask if they want to remove t
+def build_task(code, t):
+    if code == "add_me":
+        task_add = {
+        			"type": "section",
+        			"text": {
+        				"type": "mrkdwn",
+        				"text": "*Slacker detected that you have a new task: * " + t + ". *Would you like to add this task to your sprint log? (Type 'yes' to confirm, Type 'no' to cancel)*"
+        			}
+        		}
+        return [task_add]
+    if code ==  "remove_me":
+        task_remove = {
+        			"type": "section",
+        			"text": {
+        				"type": "mrkdwn",
+        				"text": "*Slacker detected that you have finished* " + t +". *Would you like this task to be removed from your sprint log? (Type 'yes' to confirm, Type 'no' to cancel)*"
+        			}
+        		}
+        return [task_remove]
+
+# builds home page based off of tasks in db
+def build_home():
+
+    # home page header
+    main_block = [
+    {
+    			"type": "divider"
+    		},
+    		{
+    			"type": "section",
+    			"text": {
+    				"type": "mrkdwn",
+    				"text": "Welcome to your Slacker sprint view. This is where  you can view all current tasks and their corresponding user stories! \n \n Using Slacker makes it easy to manager your sprints collaboratively with your group. To start a new scrum session, simple type *'start scrum'* into any public channel. \n \n Slacker automatically listens to your conversations and notes when the group wants to add a new task or complete an existing task on your team's sprint log. When it recognizes this, Slacker will make the appropriate changes to your sprint log. \n \n  During your project, Slacker will listen for the key phrase *'end sprint'*, at which point it will know that you have completed a sprint. \n \n Finally, once your project is finished, simply type *'end scrum'* to end your current scrum session. :)"
+    			}
+    		},
+    		{
+    			"type": "divider"
+    		}
+        ]
+
+    block = main_block
+
+    conn = sqlite3.connect('scrum.db')
+    with conn:
+
+        # get user stories
+        for row in conn.execute("SELECT * FROM user_stories"):
+
+            # basic story block
+            story_block =[
+            		 {
+                        "type": "header",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "" + row[1],
+                            "emoji": True
+                        }
+                    },
+                    {
+                        "type": "divider"
+                    }
+            	]
+
+            block = block + story_block
+
+            # get tasks for appropriate user story
+            for rowB in conn.execute("SELECT * FROM backlog"):
+
+                # basic task block
+                task_block =[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Task: " + rowB[1]
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Sprint Points: " + str(rowB[6])  #update after get rid of sprint, done_date
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Team Member Responsible: " + rowB[5] # update after get rid of spring, done_date
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Status: " + task_status(rowB)
+                    }
+                },
+                {
+                    "type": "divider"
+                }
+                ]
+
+                # if task belongs to this user story...
+                if rowB[1] == row[0]:
+                        block = block + task_block
+
+
+    view = {"type": "home", "callback_id": "home_view", "blocks": block}
+
+    ret_view = json.dumps(view)
+
+    return ret_view
+
+
+# builds end of sprint summary
+def build_summary():
+
+    # message header
+    main_block = [
+    {
+    			"type": "divider"
+    		},
+    		{
+    			"type": "section",
+    			"text": {
+    				"type": "mrkdwn",
+    				"text": "*Here is your end-of-sprint summary:\n*"
+    			}
+    		},
+    		{
+    			"type": "divider"
+    		}
+        ]
+
+    block = main_block
+
+    conn = sqlite3.connect('scrum.db')
+    with conn:
+
+        # get user stories
+        for row in conn.execute("SELECT * FROM user_stories"):
+
+            # basic story block
+            story_block =[
+            		 {
+                        "type": "header",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "" + row[1],
+                            "emoji": True
+                        }
+                    },
+                    {
+                        "type": "divider"
+                    }
+            	]
+
+            block = block + story_block
+
+            # get tasks for appropriate user story
+            for rowB in conn.execute("SELECT * FROM backlog"):
+
+                # basic task block
+                task_block =[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Task: " + rowB[1]
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Team Member Responsible: " + rowB[5] # update after get rid of spring, done_date
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Status: " + task_status(rowB)
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Expected Time: " + str(rowB[6]) # update after get rid of spring, done_date
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Actual Time: " + str(rowB[7])  #update after get rid of spring, done_date
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "*Burndown:* " + str(round((rowB[7]/rowB[6])*100)) + "%"  #update after get rid of spring, done_date
+                    }
+                },
+                {
+                    "type": "divider"
+                }
+                ]
+
+                # if task belongs to this user story...
+                if rowB[1] == row[0]:
+                        block = block + task_block
+
+
+    view = {"type": "home", "callback_id": "home_view", "blocks": block}
+
+    ret_view = json.dumps(view)
+
+    return ret_view
+
+app.start(config['port'])
+
+# listens to events and is called when home is opened. updates home view based on what is in db
+@app.event("app_home_opened")
+def update_home(client, event, logger):
+    try:
+        client.views_publish(
+        user_id= event["user"],
+        view= build_home()
+    )
+    except Exception as e:
+        logger.error(f"Error publishing home tabe: {e}")
+
+if __name__ == "__main__":
+    app.start(port=int(os.environ.get("PORT", 3000)))
+
+#####	OLD######
+
+
+
 # contains  all  payloads for UI  elements
 
 #--SCRUM SET UP ELEMENTS--#
