@@ -8,7 +8,7 @@ def task_status(row):
         return "In Progress"
 
 # builds drop down for user story select
-def build_story:
+def build_story():
 
     conn = sqlite3.connect('scrum.db')
     with conn:
