@@ -483,7 +483,7 @@ end_scrum = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*Your scrum been marked as finished.* You may now start a new scrum"
+				"text": "*Your scrum been marked as finished.*"
 			}
 		}
 

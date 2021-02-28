@@ -9,7 +9,13 @@ import sqlite3
 from slack_bolt import App
 
 from nlp import parse_tasks
-from ui import build_home
+
+# build functions for graphical displays
+from Slacker_UI import build_task, build_home, build_summary
+# confirm messages for slash commands
+from Slacker_UI import scrum_confirm, story_confirm, add_confirm, remove_confirm, un_add_confirm, un_remove_confirm, end_scrum
+# confirm messages for NLP
+from Slacker_UI import task_detected, task_confirm, un_task_confirm, completion_detected, completion_confirm, un_completion_confirm
 
 config = json.load(open('config.json'))
 
