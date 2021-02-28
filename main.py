@@ -13,9 +13,9 @@ from nlp import parse_tasks
 # build functions for graphical displays
 from Slacker_UI import build_home, build_summary, build_story
 # confirm messages for slash commands
-from Slacker_UI import scrum_confirm, story_confirm, add_confirm, remove_confirm, un_add_confirm, un_remove_confirm, end_scrum
+from Slacker_UI import scrum_confirm, story_confirm, add_confirm, remove_confirm, end_scrum
 # confirm messages for NLP
-from Slacker_UI import task_detected, task_confirm, un_task_confirm, completion_detected, completion_confirm, un_completion_confirm
+from Slacker_UI import task_detected, task_confirm, completion_detected, completion_confirm
 
 config = json.load(open('config.json'))
 
