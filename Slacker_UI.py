@@ -7,82 +7,43 @@ def task_status(row):
     else:
         return "In Progress"
 
-# confirmation that scrum session has started
-scrum_confirm = {
+# builds drop down for user story select
+def build_story:
+
+    conn = sqlite3.connect('scrum.db')
+    with conn:
+        start = []
+        # get user stories
+        for row in conn.execute("SELECT * FROM user_stories"):
+            block = {
+                "text": {
+                    "type": "plain_text",
+                    "text": row[1],
+                    "emoji": true
+                },
+                "value": "value-2"
+            }
+            start = start + block
+
+    header = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "Slacker has started a new scrum session."
+				"text": "Pick a story from the dropdown list"
+			},
+			"accessory": {
+				"type": "static_select",
+				"placeholder": {
+					"type": "plain_text",
+					"text": "Select an item",
+					"emoji": true
+				},
+				"options": start,
+				"action_id": "static_select-action"
 			}
 		}
 
-# confirmation that user story is added
-story_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Slacker has added this user story."
-			}
-		}
-
-# confirmation that task was added
-add_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Slacker has added this task to your sprint log."
-			}
-		}
-
-# confirmation that task was added
-un_add_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "OK! I won't add this to your sprint log."
-			}
-		}
-
-# confirmation that task was removed
-remove_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Slacker has marked this task as completed."
-			}
-		}
-
-# confirmation that task was added
-un_remove_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "OK! I won't remove this from your sprint log."
-			}
-		}
-
-# confirmation message after detecting natural language detection
-# if adding, ask if they want to add t
-#  if  removing, ask if they want to remove t
-def build_task(code, t):
-    if code == "add_me":
-        task_add = {
-        			"type": "section",
-        			"text": {
-        				"type": "mrkdwn",
-        				"text": "*Slacker detected that you have a new task: * " + t + ". *Would you like to add this task to your sprint log? (Type 'yes' to confirm, Type 'no' to cancel)*"
-        			}
-        		}
-        return [task_add]
-    if code ==  "remove_me":
-        task_remove = {
-        			"type": "section",
-        			"text": {
-        				"type": "mrkdwn",
-        				"text": "*Slacker detected that you have finished* " + t +". *Would you like this task to be removed from your sprint log? (Type 'yes' to confirm, Type 'no' to cancel)*"
-        			}
-        		}
-        return [task_remove]
+    return json.dumps(header)
 
 # builds home page based off of tasks in db
 def build_home():
@@ -280,31 +241,159 @@ def build_summary():
                 if rowB[1] == row[0]:
                         block = block + task_block
 
-
-    view = {"type": "home", "callback_id": "home_view", "blocks": block}
-
     ret_view = json.dumps(view)
 
     return ret_view
 
-app.start(config['port'])
+# confirmation that scrum session has started
+scrum_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker has started a new scrum session."
+			}
+		}
 
-# listens to events and is called when home is opened. updates home view based on what is in db
-@app.event("app_home_opened")
-def update_home(client, event, logger):
-    try:
-        client.views_publish(
-        user_id= event["user"],
-        view= build_home()
-    )
-    except Exception as e:
-        logger.error(f"Error publishing home tabe: {e}")
+# confirmation that user story is added
+story_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker has added this user story."
+			}
+		}
 
-if __name__ == "__main__":
-    app.start(port=int(os.environ.get("PORT", 3000)))
+# confirmation that task was added
+add_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker has added this task to your sprint log."
+			}
+		}
 
-#####	OLD######
+# confirmation that task was removed
+remove_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker has marked this task as completed."
+			}
+		}
 
+# scrum end confirm
+end_scrum = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Your scrum been marked as finished.*"
+			}
+		}
+
+#  scrum confirm
+scrum_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Your scrum has been set up*"
+			}
+		}
+
+# add detecttion
+task_detected = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker detected PLACEHOLDER as a task. Would you like to add this to your sprint log for this week?"
+			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"emoji": true,
+						"text": "Yes"
+					},
+					"style": "primary",
+					"value": "click_me_123"
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"emoji": true,
+						"text": "No"
+					},
+					"style": "danger",
+					"value": "click_me_123"
+				}
+			]
+		}
+
+# add confirm
+task_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Your task has been added to your sprint log*"
+			}
+		}
+
+# completion detection
+completion_detected = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Slacker that you completed  PLACEHOLDER. Would you like to remove this from your sprint log?"
+			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"emoji": true,
+						"text": "Yes"
+					},
+					"style": "primary",
+					"value": "click_me_123"
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"emoji": true,
+						"text": "No"
+					},
+					"style": "danger",
+					"value": "click_me_123"
+				}
+			]
+		}
+
+# confirm completed
+completion_confirm = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Your burndown for this task was: PLACEHOLDER\n*Your task has been removed to your sprint log*"
+			}
+		}
+
+# confirm end of sprint
+end_sprint = {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Okay! I will end your current sprint. Any tasks not completed be automatically added to your next sprint!"
+			}
+		}
+############### NOTHING BELOW HERE #############
 
 
 # contains  all  payloads for UI  elements
@@ -463,13 +552,6 @@ add_story_story_name = {
     "emoji": true
 }
 
-scrum_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Your scrum has been set up*"
-			}
-		}
 
 scrum_in_progress = {
 			"type": "section",
@@ -479,13 +561,7 @@ scrum_in_progress = {
 			}
 		}
 
-end_scrum = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Your scrum been marked as finished.*"
-			}
-		}
+
 
 end_scrum_not = {
 			"type": "section",
@@ -504,44 +580,12 @@ end_scrum_not = {
 #   task_confirm -> message to confirm task has been added to sprint
 #   un_task_confirm -> message to confirm task hasnot been added to sprint
 
-task_detected = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Slacker detected PLACEHOLDER as a task. Would you like to add this to your sprint log for this week?"
-			}
-		},
-		{
-			"type": "actions",
-			"elements": [
-				{
-					"type": "button",
-					"text": {
-						"type": "plain_text",
-						"emoji": true,
-						"text": "Yes"
-					},
-					"style": "primary",
-					"value": "click_me_123"
-				},
-				{
-					"type": "button",
-					"text": {
-						"type": "plain_text",
-						"emoji": true,
-						"text": "No"
-					},
-					"style": "danger",
-					"value": "click_me_123"
-				}
-			]
-		}
 
 story_select = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*What user story does PLACEHOLDER belong to?*"
+				"text": "*Please select a user story for this task*"
 			}
 		},
 		{
@@ -673,59 +717,14 @@ point_allocation = {
 			}
 		}
 
-task_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Your task has been added to your sprint log*"
-			}
-		}
 
-un_task_confirm  = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Ok! This will not be added to your sprint.*"
-			}
-		}
 
 #--TASK COMPLETION ELEMENTS--#
 #   completion_detected -> message sent when system detects  task completion
 #   completion_confirm -> message confirming task has been removed from sprint log
 #   un_completion_confirm -> message confirming task have not been removed from sprint log
 
-completion_detected = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Slacker that you completed  PLACEHOLDER. Would you like to remove this from your sprint log?"
-			}
-		},
-		{
-			"type": "actions",
-			"elements": [
-				{
-					"type": "button",
-					"text": {
-						"type": "plain_text",
-						"emoji": true,
-						"text": "Yes"
-					},
-					"style": "primary",
-					"value": "click_me_123"
-				},
-				{
-					"type": "button",
-					"text": {
-						"type": "plain_text",
-						"emoji": true,
-						"text": "No"
-					},
-					"style": "danger",
-					"value": "click_me_123"
-				}
-			]
-		}
+
 
 actual_point_allocation = {
 			"type": "section",
@@ -735,32 +734,10 @@ actual_point_allocation = {
 			}
 		}
 
-completion_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Your burndown for this task was: PLACEHOLDER\n*Your task has been removed to your sprint log*"
-			}
-		}
-
-un_completion_confirm = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Ok! Your task will not been removed.*"
-			}
-		}
-
 #--SPRINT REFLECTION ELEMENTS--#
 #   end_sprint -> last day of spring task reminder
 
-end_sprint = {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Okay! I will end your current sprint. Any tasks not completed be automatically added to your next sprint!"
-			}
-		}
+
 
 #--HOME ELEMENTS--#
 #   demo_home -> home page example (also what is sent when they view sprint in chat)
@@ -837,169 +814,3 @@ home_header = {
 		{
 			"type": "divider"
 		}
-
-demo_home = {
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"fields": [
-				{
-					"type": "mrkdwn",
-					"text": "Welcome to your Slacker sprint view. This is where  you can view all current tasks and their corresponding user stories!"
-				}
-			]
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "header",
-			"text": {
-				"type": "plain_text",
-				"text": "User can edit to-do list",
-				"emoji": true
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Task:* placeholder"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Sprint Points:* placeholder"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Team Member Responsible:*"
-			},
-			"accessory": {
-				"type": "users_select",
-				"placeholder": {
-					"type": "plain_text",
-					"text": "Select a user",
-					"emoji": true
-				},
-				"action_id": "users_select-action"
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Task:* placeholder"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Sprint Points:* placeholder"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Team Member Responsible:*"
-			},
-			"accessory": {
-				"type": "users_select",
-				"placeholder": {
-					"type": "plain_text",
-					"text": "Select a user",
-					"emoji": true
-				},
-				"action_id": "users_select-action"
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "header",
-			"text": {
-				"type": "plain_text",
-				"text": "User can edit to-do list",
-				"emoji": true
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Task:* placeholder"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Sprint Points:* placeholder"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Team Member Responsible:*"
-			},
-			"accessory": {
-				"type": "users_select",
-				"placeholder": {
-					"type": "plain_text",
-					"text": "Select a user",
-					"emoji": true
-				},
-				"action_id": "users_select-action"
-			}
-		},
-		{
-			"type": "divider"
-		}
-	]
-
-#  class to get message payloads (<-- not done, may do something else)
-class SlackerMessages:
-
-    def _get_scenario(self, code):
-
-        # scrum set-up codes
-        if code == "set_up_name":
-            return set_up_name
-        elif code == "enter_story_message":
-            return enter_story_message
-        elif code == "scrum_confirm":
-            return scrum_confirm
-        elif code == "scrum_in_progress":
-            return scrum_in_progress
-        elif code == "end_scrum":
-            return end_scrum
-        elif code == "end_scrum_not":
-            return end_scrum_not
-        return
-        # task adding/sprint planning codes
-        # task completion/sprint reflection codes
-
-    def get_payload(self, code, channel):
-        return{
-            "channel": channel,
-            "blocks": [self._get_scenario(code, channel)]
-        }

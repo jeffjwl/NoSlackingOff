@@ -11,7 +11,7 @@ from slack_bolt import App
 from nlp import parse_tasks
 
 # build functions for graphical displays
-from Slacker_UI import build_task, build_home, build_summary
+from Slacker_UI import build_home, build_summary, build_story
 # confirm messages for slash commands
 from Slacker_UI import scrum_confirm, story_confirm, add_confirm, remove_confirm, un_add_confirm, un_remove_confirm, end_scrum
 # confirm messages for NLP
@@ -110,13 +110,11 @@ def task_command(ack, say, command):
             conn.execute('DELETE FROM tasks')
 '''
 
-'''
 @app.event('app_home_opened')
 def on_app_home_opened(client, event, logger):
     try:
         client.views_publish(user_id=event['user'], view=build_home())
     except Exception as e:
         logger.error(f'Error publishing home tabe: {e}')
-'''
 
 app.start(config['port'])
