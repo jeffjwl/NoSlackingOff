@@ -1,47 +1,87 @@
 import dbm
 import sqlite3
+import time
+import os
 
-#TODO: Key-value database
-# 1. Sprint start
-# 2. Sprint length
+# TODO: Exception handling (especially on DBM)
 
 # SQL Database
 with sqlite3.connect('scrum.db') as conn:
     conn.execute(
         'CREATE TABLE IF NOT EXISTS user_stories '
-        '(id INTEGER PRIMARY KEY, name TEXT, description TEXT)')
+        '(id INTEGER PRIMARY KEY, name TEXT, description TEXT);')
     conn.execute(
-        'CREATE TABLE IF NOT EXISTS backlog'
+        'CREATE TABLE IF NOT EXISTS backlog '
         '(id INTEGER PRIMARY KEY, name TEXT NOT NULL, '
-        'user_story INTEGER REFERENCES user_stories (id), '
         'sprint INTEGER, done_date INTEGER, assignee TEXT, '
-        'estimated_time INTEGER, actual_time INTEGER)')
+        'estimated_time INTEGER, actual_time INTEGER, '
+        'user_story INTEGER REFERENCES user_stories (id) ON DELETE CASCADE);')
 
 # Scrum
-def start_scrum(start_time: int, sprint_legnth: int):
-    pass
+def start_scrum(start_time: int, sprint_length: int):
+    with dbm.open('scrum.dbm', 'n') as db:
+        db['start_time'] = str(start_time)
+        db['sprint_length'] = str(sprint_length)
 
 def end_scrum():
-    pass
+    with sqlite3.connect('scrum.db') as conn:
+        conn.execute('DELETE FROM user_stories;')
+        conn.execute('DELETE FROM backlog;')
+    os.remove('scrum.dbm')
+
+def show_scrum() -> str:
+    with dbm.open('scrum.dbm') as db:
+        start_time = time.ctime(int(db['start_time']))
+        sprint_length = int(db['sprint_length'])
+    return f'Sprints starting from {start_time} at {sprint_length}-day intervals.'
 
 # User stories
 def add_user_story(name: str, description: str):
     with sqlite3.connect('scrum.db') as conn:
         conn.execute(
-            'INSERT INTO user_stories (name, description) VALUES (?, ?)',
+            'INSERT INTO user_stories (name, description) VALUES (?, ?);',
             (name, description))
 
 def remove_user_story(id_: int):
     with sqlite3.connect('scrum.db') as conn:
-        conn.execute('DELETE FROM user_stories WHERE id=?', (id_,))
+        conn.execute('DELETE FROM user_stories WHERE id=?;', (id_,))
+
+def show_user_stories() -> str:
+    result = ''
+    with sqlite3.connect('scrum.db') as conn:
+        for row in conn.execute('SELECT id, name, description FROM user_stories'):
+            result = result + f'{row[0]}. {row[1]}: {row[2]}\n'
+    return result if result else 'No user stories!'
+
 
 # Backlog
 def add_task(name: str, story: int, assignee: str, estimated_time: int):
-    pass
+    try:
+        with dbm.open('scrum.dbm') as db:
+            length = int(db['sprint_length'])
+            sprint = int((int(time.time()) - int(float(db['start_time']))) / length) + 1
+    except dbm.error:
+        raise Exception('No existing sprint!')
+    with sqlite3.connect('scrum.db') as conn:
+        conn.execute(
+            'INSERT INTO backlog '
+            '(name, user_story, sprint, assignee, estimated_time) '
+            'VALUES (?, ?, ?, ?, ?);',
+            (name, story, sprint, assignee, estimated_time))
 
 def complete_task(id_: str, actual_time: int):
-    pass
+    with sqlite3.connect('scrum.db') as conn:
+        conn.execute(
+            'UPDATE backlog SET done_date=?, actual_time=? WHERE id=?;',
+            (time.time(), actual_time, id_))
 
 def remove_task(id_: int):
     with sqlite3.connect('scrum.db') as conn:
-        conn.execute('DELETE FROM backlog WHERE id=?', (id_,))
+        conn.execute('DELETE FROM backlog WHERE id=?;', (id_,))
+
+def show_backlog() -> str:
+    result = ''
+    with sqlite3.connect('scrum.db') as conn:
+        for row in conn.execute('SELECT id, name FROM backlog'):
+            result = result + f'{row[0]}. {row[1]}\n'
+    return result if result else 'Backlog empty!'
