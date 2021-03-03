@@ -15,7 +15,7 @@ def handle_message(message):
     tags = nltk.pos_tag(tokenized_message)
     # tags is a list of tuples, [0] == word, [1] == part of speech
     # cleaning unnecessary words
-    new_task = r"""new_task: {<TO.?|MD.?><VB.?>(<IN>)?<NN.?>}"""
+    new_task = r"""new_task: {<TO.?|MD.?><VB.?>(<IN>)?<NN.?|noun_phrase>}"""
     noun_phrase = r"""noun_phrase: {<VBG>?<DT>?<JJ.*>*<NN.*>+}"""
     completed_task = r"""completion: {<PRP|noun_phrase|NN><VBZ><VBN>}"""
     task_parser = nltk.RegexpParser(new_task)
@@ -25,7 +25,8 @@ def handle_message(message):
     tasks = []
     completed_tasks = []
     for subtree in chunked.subtrees():
-        if subtree.label() == 'naive_task':
+        print(subtree)
+        if subtree.label() == 'new_task':
             cur_task = handle_new_task(subtree)
             tasks.append(cur_task)
             #if cur_task:
