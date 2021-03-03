@@ -25,16 +25,16 @@ def handle_message(message):
     tasks = []
     completed_tasks = []
     for subtree in chunked.subtrees():
-        print(subtree)
         if subtree.label() == 'new_task':
             cur_task = handle_new_task(subtree)
             tasks.append(cur_task)
-            #if cur_task:
-                #tasks.append(cur_task)
-        # if subtree.label() == 'completion':
-        #     cur_task_id = handle_old_task(subtree)
-        #     if cur_task_id:
-        #         completed_tasks.append(cur_task_id)
+            if cur_task:
+                if cur_task not in tasks:
+                    tasks.append(cur_task)
+        if subtree.label() == 'completion':
+            cur_task_id = handle_old_task(subtree)
+            if cur_task_id != None:
+                completed_tasks.append(cur_task_id)
 
     return {'new_tasks' : tasks, 'completed_tasks' : completed_tasks}
 
@@ -52,8 +52,8 @@ def find_existing_tasks(key_words):
             tags = nltk.pos_tag(tokenized_task)
             row_key_words = []
             for tag in tags:
-                if 'NN' in tag[0] or 'VB' in tag[0]:
-                    row_key_words.append(tag[1])
+                if 'NN' in tag[1] or 'VB' in tag[1]:
+                    row_key_words.append(tag[0])
             for word in key_words:
                 if word in row_key_words:
                     return i
@@ -70,10 +70,9 @@ def handle_new_task(subtree):
             key_words.append(l[0])
             # only
     cur_task = {'task': raw_task}
-    return cur_task
-    #if not find_existing_tasks(key_words):
-    #    return cur_tas
-    #return None
+    if not find_existing_tasks(key_words):
+        return cur_task
+    return None
 
 
 def handle_old_task(subtree):
@@ -85,12 +84,14 @@ def handle_old_task(subtree):
         key_words = []
         # first check if there is a nounphrase subtree
         for chunk in subtree:
-            if chunk[0] == 'noun_phrase':
-                key_words = [w[0] for w in chunk[1:]]
-            if 'NN' in l[0]:
-                key_words.append(l[1])
+            try:
+                if chunk.label() == 'noun_phrase':
+                    key_words = [w[0] for w in chunk[1:]]
+            except:
+                if 'NN' in l[0]:
+                    key_words.append(l[1])
         # given the key words, need to check if they are in the database
         matching_task = find_existing_tasks(key_words)
-        if matching_task:
+        if matching_task != None:
             return matching_task
     return None
