@@ -92,11 +92,11 @@ app = App(
 
 @app.message('')
 def on_message(message, say):
-    print(message['text'])
+    print('Original message: ', message['text'])
     nlp_out = nlp.handle_message(message['text'])
     add_detect = nlp_out['new_tasks']
     complete_detect = nlp_out['completed_tasks']
-    print(add_detect)
+    print('New tasks: ', add_detect)
 
     if(len(add_detect) != 0):
         for task_name in add_detect:
