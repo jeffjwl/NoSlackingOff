@@ -47,7 +47,7 @@ def handle_modal_submission(ack, body, client, view, say):
     task_id = view["blocks"][0]["text"]["text"].split(' ')[0]
     channel_id = view["blocks"][1]["block_id"]
     say(text=f"{task_id} completed in {time} hours. Great job!", channel = channel_id)
-    #db.complete_task(task_id, time) 
+    db.complete_task(task_id, time) 
     ack()
 
 @app.view("view_add")
@@ -72,7 +72,7 @@ def handle_modal_submission_add(ack,body,view,say):
         say(text = "Cannot add task: No user stories.", channel = channel_id)
         return
 
-    #db.add_task(name,story,asignee,est_time)
+    db.add_task(name,story,asignee,est_time)
     say(text = f"{name} was just added under {story}. It is assigned to <@{asignee}> and is expected to take {est_time} hours.", channel = channel_id)
     
 
