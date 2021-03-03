@@ -13,9 +13,9 @@ from slack_bolt import App
 
 # Local modules
 import db
-#import Slacker_UI
-from nlp import handle_message
-from ui import create_home_view
+import Slacker_UI
+import confirmations
+import nlp
 
 config = json.load(open('config.json'))
 
@@ -78,9 +78,39 @@ app = App(
     token = config['token'],
     signing_secret = config['signingSecret'])
 
+#TODO: When the nlp detects a task to be completed: 
+#           - Use 'complete_confirm = confirmations.build_task_completed(task_id,message['channel'])'
+#                - "task_id" is the value fetched from nlp for completed tasks
+#                - This function builds the block UI confirmation message
+#           - Then use 'say(blocks = complete_confirm, text = " ")' 
+#
+#      When the nlp detects a task to be added: 
+#           -Use 'add_confirm = confirmations.build_task_add(task_name,message['channel'])'
+#                - "task_name" is the value fetched from nlp for adding tasks
+#                - This function builds the block UI confirmation message
+#           - Then use 'say(blocks = add_confirm, text = " ")' 
+
 @app.message('')
 def on_message(message, say):
-    print('NLP message: ', handle_message(message['text']))
+    print(message['text'])
+    nlp_out = nlp.handle_message(message['text'])
+    add_detect = nlp_out['new_tasks']
+    complete_detect = nlp_out['completed_tasks']
+    print(add_detect)
+
+    if(len(add_detect) != 0):
+        for task_name in add_detect:
+            add_confirm = confirmations.build_task_add(task_name,message['channel'])
+            say(blocks = add_confirm, text = " ")
+
+    if(len(complete_detect) != 0):
+        for task_id in complete_detect:
+            complete_confirm = confirmations.build_task_completed(task_id, message['channel'])
+            say(blocks = complete_confirm, text = " ")
+    
+    # tasks = [(x['task'],) for x in parse_tasks(message['text'])]
+    # with sqlite3.connect('tasks.db') as conn:
+    #     conn.executemany('INSERT INTO tasks VALUES (?, NULL, NULL)', tasks)
 
 @app.command('/scrum')
 def scrum_command(ack, say, command):
@@ -173,9 +203,71 @@ def backlog_command(ack, say, command):
 @app.event('app_home_opened')
 def on_app_home_opened(client, event, logger):
     try:
-        client.views_publish(user_id=event['user'], view=create_home_view())
+        client.views_publish(user_id=event['user'], view=Slacker_UI.build_home())
     except Exception as e:
         logger.error(f'Error publishing home tab: {e}')
 
+@app.action('task_add_confirm')
+def open_add_modal(ack,body,client,action):
+    ack()
+    #Using the '|||' is a temporary fix for now, will make a more versatile splitter next time
+    task_id = action['value'].split('|||')[0]
+    channel_id = action['value'].split('|||')[1]
+    client.views_open(
+        trigger_id=body["trigger_id"],
+        view = confirmations.add_modal_build(task_id,channel_id)
+    )
+
+@app.action('task_complete_confirm')
+def open_completion_modal(ack, body, client, action):
+    ack()
+    task_id = action['value'].split(' ')[0]
+    channel_id = action['value'].split(' ')[1]
+    client.views_open(
+        trigger_id=body["trigger_id"],
+        view= confirmations.complete_modal_build(task_id,channel_id)
+    )
+
+@app.view("view_complete")
+def handle_modal_submission(ack, body, client, view, say):
+    time = view["state"]["values"]["actual_time"]["actual_task_time"]["value"]
+    task_id = view["blocks"][0]["text"]["text"].split(' ')[0]
+    channel_id = view["blocks"][1]["block_id"]
+    say(text=f"{task_id} completed in {time} hours. Great job!", channel = channel_id)
+    db.complete_task(task_id, time) 
+    ack()
+
+@app.view("view_add")
+def handle_modal_submission_add(ack,body,view,say,client):
+    values = view["state"]["values"]
+    user = body["user"]["id"]
+    channel_id = view["blocks"][1]["block_id"]
+    
+    #Hacky fix for blocks having id's for some reason
+    for key in values:
+        if "task_name_input" in values[key]:
+            name = values[key]["task_name_input"]["value"]
+        elif "select_user_story" in values[key]:
+            story = values[key]["select_user_story"]["selected_option"]["text"]["text"]
+        elif "expected_time" in values[key]:
+            est_time = values[key]["expected_time"]["value"]
+        elif "task_user" in values[key]:
+            asignee = values[key]["task_user"]["selected_user"]
+    ack()
+
+    if story == "There are no user stories": 
+        say(text = "Cannot add task: No user stories.", channel = channel_id)
+        return
+
+    db.add_task(name,story,asignee,est_time)
+    #say(text = f"{name} was just added under {story}. It is assigned to <@{asignee}> and is expected to take {est_time} hours.", channel = channel_id)
+    say('Task added!')
+
+@app.action('task_user')
+def dummy_function(ack):
+    #I don't know why, but the user picker won't work without an acknowledgement for its action
+    ack()
+
+#app.start(config['port'])
 if __name__ == "__main__":
     app.start(config['port'])
