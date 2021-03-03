@@ -13,16 +13,8 @@ from slack_bolt import App
 
 # Local modules
 import db
+import Slacker_UI
 from nlp import parse_tasks
-
-'''
-# build functions for graphical displays
-from Slacker_UI import build_home, build_summary, build_story
-# confirm messages for slash commands
-from Slacker_UI import scrum_confirm, story_confirm, add_confirm, remove_confirm, end_scrum
-# confirm messages for NLP
-from Slacker_UI import task_detected, task_confirm, completion_detected, completion_confirm
-'''
 
 config = json.load(open('config.json'))
 
@@ -33,7 +25,7 @@ def split_args(text):
 
 # TODO: Subparser exception handling (rather than print to console)
 # Scrum parser
-scrum_parser = argparse.ArgumentParser(exit_on_error=False)
+scrum_parser = argparse.ArgumentParser()#exit_on_error=False)
 scrum_subparsers = scrum_parser.add_subparsers(dest='subcommand')
 # start
 start_scrum_parser = scrum_subparsers.add_parser('start')
@@ -45,7 +37,7 @@ end_scrum_parser = scrum_subparsers.add_parser('end')
 show_scrum_parser = scrum_subparsers.add_parser('show')
 
 # User story parser
-user_story_parser = argparse.ArgumentParser(exit_on_error=False)
+user_story_parser = argparse.ArgumentParser()#exit_on_error=False)
 user_story_subparsers = user_story_parser.add_subparsers(dest='subcommand')
 # add
 add_user_story_parser = user_story_subparsers.add_parser('add')
@@ -58,7 +50,7 @@ remove_user_story_parser.add_argument('id')
 show_user_story_parser = user_story_subparsers.add_parser('show')
 
 # Backlog parser
-backlog_parser = argparse.ArgumentParser(exit_on_error=False)
+backlog_parser = argparse.ArgumentParser()#exit_on_error=False)
 backlog_subparsers = backlog_parser.add_subparsers(dest='subcommand')
 # add
 add_parser = backlog_subparsers.add_parser('add')
@@ -103,8 +95,10 @@ def scrum_command(ack, say, command):
         except:
             start_time = time.time()
         db.start_scrum(start_time, args.sprint_length)
+        say('Scrum started.')
     elif args.subcommand == 'end':
         db.end_scrum()
+        say('Scrum ended.')
     elif args.subcommand == 'show':
         say(db.show_scrum())
 
@@ -120,8 +114,10 @@ def userstory_command(ack, say, command):
     # Subcommands
     if args.subcommand == 'add':
         db.add_user_story(args.name, args.description)
+        say('User story added.')
     elif args.subcommand == 'remove':
         db.remove_user_story(args.id)
+        say('User story removed.')
     elif args.subcommand == 'show':
         say(db.show_user_stories())
 
@@ -142,22 +138,29 @@ def backlog_command(ack, say, command):
                 args.story if hasattr(args, 'story') else None,
                 args.assignee if hasattr(args, 'assignee') else None,
                 args.estimated_time if hasattr(args, 'estimated_time') else None)
+            say('Task added to backlog.')
         except Exception as e:
             say(f'`{str(e)}`')
     elif args.subcommand == 'complete':
         db.complete_task(
             args.id,
             args.actual_time if hasattr(args, 'actual_time') else None)
+        say('Task marked as completed.')
     elif args.subcommand == 'remove':
         db.remove_task(args.id)
+        say('Task removed from backlog.')
     elif args.subcommand == 'show':
         say(db.show_backlog())
 
 @app.event('app_home_opened')
 def on_app_home_opened(client, event, logger):
     try:
-        client.views_publish(user_id=event['user'], view=build_home())
+        client.views_publish(user_id=event['user'], view=Slacker_UI.build_home())
     except Exception as e:
-        logger.error(f'Error publishing home tabe: {e}')
+        logger.error(f'Error publishing home tab: {e}')
 
-app.start(config['port'])
+#app.start(config['port'])
+if __name__ == "__main__":
+    app.start()
+
+# home page, trigger summary(also clear task db at this point)/debug summary, (jeff = buttons, nlp adding extra attributes)
