@@ -19,5 +19,4 @@ def create_home_view() -> str:
     # Insert into view
     result['blocks'][2]['text']['text'] = user_story_table if user_story_table else 'Empty'
     result['blocks'][6]['text']['text'] = backlog_table if backlog_table else 'Empty'
-    #print(json.dumps(result))
     return json.dumps(result)

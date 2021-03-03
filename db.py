@@ -38,7 +38,6 @@ def show_scrum() -> str:
             sprint_length = int(db['sprint_length'])
         return f'Sprints starting from {start_time} at {sprint_length}-day intervals.'
     except Exception as e:
-        print(e)
         return 'No current scrum.'
 
 # User stories
@@ -65,6 +64,7 @@ def add_task(name: str, story: int, assignee: str, estimated_time: int):
     try:
         with dbm.open('scrum.dbm') as db:
             length = int(db['sprint_length'])
+            start_time = float(db['start_time'])
             # FIXME: Time zone difference => Ridiculous big sprint nubmer
             #sprint = int((int(time.time()) - int(float(db['start_time']))) / length) + 1
             sprint = 1

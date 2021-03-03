@@ -13,17 +13,9 @@ from slack_bolt import App
 
 # Local modules
 import db
-from nlp import parse_tasks
+#import Slacker_UI
+from nlp import handle_message
 from ui import create_home_view
-
-'''
-# build functions for graphical displays
-from Slacker_UI import build_home, build_summary, build_story
-# confirm messages for slash commands
-from Slacker_UI import scrum_confirm, story_confirm, add_confirm, remove_confirm, end_scrum
-# confirm messages for NLP
-from Slacker_UI import task_detected, task_confirm, completion_detected, completion_confirm
-'''
 
 config = json.load(open('config.json'))
 
@@ -34,7 +26,7 @@ def split_args(text):
 
 # TODO: Subparser exception handling (rather than print to console)
 # Scrum parser
-scrum_parser = argparse.ArgumentParser(exit_on_error=False)
+scrum_parser = argparse.ArgumentParser()#exit_on_error=False)
 scrum_subparsers = scrum_parser.add_subparsers(dest='subcommand')
 # start
 start_scrum_parser = scrum_subparsers.add_parser('start')
@@ -46,7 +38,7 @@ end_scrum_parser = scrum_subparsers.add_parser('end')
 show_scrum_parser = scrum_subparsers.add_parser('show')
 
 # User story parser
-user_story_parser = argparse.ArgumentParser(exit_on_error=False)
+user_story_parser = argparse.ArgumentParser()#exit_on_error=False)
 user_story_subparsers = user_story_parser.add_subparsers(dest='subcommand')
 # add
 add_user_story_parser = user_story_subparsers.add_parser('add')
@@ -59,7 +51,7 @@ remove_user_story_parser.add_argument('id')
 show_user_story_parser = user_story_subparsers.add_parser('show')
 
 # Backlog parser
-backlog_parser = argparse.ArgumentParser(exit_on_error=False)
+backlog_parser = argparse.ArgumentParser()#exit_on_error=False)
 backlog_subparsers = backlog_parser.add_subparsers(dest='subcommand')
 # add
 add_parser = backlog_subparsers.add_parser('add')
@@ -88,9 +80,7 @@ app = App(
 
 @app.message('')
 def on_message(message, say):
-    tasks = [(x['task'],) for x in parse_tasks(message['text'])]
-    with sqlite3.connect('tasks.db') as conn:
-        conn.executemany('INSERT INTO tasks VALUES (?, NULL, NULL)', tasks)
+    print('NLP message: ', handle_message(message['text']))
 
 @app.command('/scrum')
 def scrum_command(ack, say, command):
@@ -104,11 +94,11 @@ def scrum_command(ack, say, command):
     # Subcommands
     if args.subcommand == 'start':
         try:
-            start_time = time.mktime(time.strptime(args.start_time, '%Y-%m-%d'))
+            start_time = (time.mktime(time.strptime(args.start_time, '%Y-%m-%d')))
         except:
-            start_time = time.time()
+            start_time = int(time.time())
         db.start_scrum(start_time, args.sprint_length)
-        say('New scrum started!')
+        say('Scrum started!')
     elif args.subcommand == 'end':
         db.end_scrum()
         say('Scrum ended!')
@@ -145,7 +135,6 @@ def backlog_command(ack, say, command):
         return
     # Subcommands
     if args.subcommand == 'add':
-        print(args)
         try:
             db.add_task(
                 args.name,
@@ -188,4 +177,5 @@ def on_app_home_opened(client, event, logger):
     except Exception as e:
         logger.error(f'Error publishing home tab: {e}')
 
-app.start(config['port'])
+if __name__ == "__main__":
+    app.start(config['port'])
