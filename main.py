@@ -14,6 +14,7 @@ from slack_bolt import App
 # Local modules
 import db
 from nlp import parse_tasks
+from ui import create_home_view
 
 '''
 # build functions for graphical displays
@@ -63,9 +64,9 @@ backlog_subparsers = backlog_parser.add_subparsers(dest='subcommand')
 # add
 add_parser = backlog_subparsers.add_parser('add')
 add_parser.add_argument('name')
-add_parser.add_argument('-story', '--user_story')
+add_parser.add_argument('-story', '--user_story', type=int)
 add_parser.add_argument('-a', '--assignee')
-add_parser.add_argument('-eta', '--estimated_time')
+add_parser.add_argument('-eta', '--estimated_time', type=int)
 # complete
 complete_parser = backlog_subparsers.add_parser('complete')
 complete_parser.add_argument('id', type=int)
@@ -76,6 +77,10 @@ remove_parser.add_argument('id', type=int)
 # show
 show_parser = backlog_subparsers.add_parser('show')
 # TODO: modify
+modify_parser = backlog_subparsers.add_parser('modify')
+modify_parser.add_argument('id', type=int)
+modify_parser.add_argument('column', choices=['name', 'assignee', 'story', 'eta', 'ata']) #TODO: More choices
+modify_parser.add_argument('value')
 
 app = App(
     token = config['token'],
@@ -103,8 +108,10 @@ def scrum_command(ack, say, command):
         except:
             start_time = time.time()
         db.start_scrum(start_time, args.sprint_length)
+        say('New scrum started!')
     elif args.subcommand == 'end':
         db.end_scrum()
+        say('Scrum ended!')
     elif args.subcommand == 'show':
         say(db.show_scrum())
 
@@ -120,8 +127,10 @@ def userstory_command(ack, say, command):
     # Subcommands
     if args.subcommand == 'add':
         db.add_user_story(args.name, args.description)
+        say('User story added!')
     elif args.subcommand == 'remove':
         db.remove_user_story(args.id)
+        say('User story removed!')
     elif args.subcommand == 'show':
         say(db.show_user_stories())
 
@@ -136,28 +145,47 @@ def backlog_command(ack, say, command):
         return
     # Subcommands
     if args.subcommand == 'add':
+        print(args)
         try:
             db.add_task(
                 args.name,
-                args.story if hasattr(args, 'story') else None,
+                args.user_story if hasattr(args, 'user_story') else None,
                 args.assignee if hasattr(args, 'assignee') else None,
-                args.estimated_time if hasattr(args, 'estimated_time') else None)
+                args.estimated_time if hasattr(args, 'estimated_time') else 0)
+            say('Task added!')
         except Exception as e:
             say(f'`{str(e)}`')
     elif args.subcommand == 'complete':
         db.complete_task(
             args.id,
             args.actual_time if hasattr(args, 'actual_time') else None)
+        say('Task completed!')
     elif args.subcommand == 'remove':
         db.remove_task(args.id)
+        say('Task removed!')
     elif args.subcommand == 'show':
         say(db.show_backlog())
+    elif args.subcommand == 'modify':
+        column_alias = {
+            'name': 'name',
+            'assignee': 'assignee',
+            'story': 'user_story',
+            'sprint': 'sprint',
+            'eta': 'estimated_time',
+            'ata': 'actual_time'
+        }
+        column = column_alias[args.column]
+        value = args.value
+        if args.column in ['story', 'sprint', 'eta', 'ata']:
+            value = int(value)
+        db.modify_task(args.id, column, value)
+        say('Task modified!')
 
 @app.event('app_home_opened')
 def on_app_home_opened(client, event, logger):
     try:
-        client.views_publish(user_id=event['user'], view=build_home())
+        client.views_publish(user_id=event['user'], view=create_home_view())
     except Exception as e:
-        logger.error(f'Error publishing home tabe: {e}')
+        logger.error(f'Error publishing home tab: {e}')
 
 app.start(config['port'])

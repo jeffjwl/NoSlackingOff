@@ -1,0 +1,51 @@
+{
+	"type": "home",
+	"callback_id": "home_view",
+	"blocks": [
+		{
+			"type": "header",
+			"text": {
+				"type": "plain_text",
+				"text": "User Stories"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "(ID, Name, Description)"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "Empty"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "header",
+			"text": {
+				"type": "plain_text",
+				"text": "Backlog"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "(ID, Name, User Story, Sprint, Assignee, Estimated Time, Actual Time)"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "Empty"
+			}
+		}
+	]
+}

@@ -19,6 +19,7 @@ with sqlite3.connect('scrum.db') as conn:
 
 # Scrum
 def start_scrum(start_time: int, sprint_length: int):
+    end_scrum()
     with dbm.open('scrum.dbm', 'n') as db:
         db['start_time'] = str(start_time)
         db['sprint_length'] = str(sprint_length)
@@ -27,13 +28,18 @@ def end_scrum():
     with sqlite3.connect('scrum.db') as conn:
         conn.execute('DELETE FROM user_stories;')
         conn.execute('DELETE FROM backlog;')
-    os.remove('scrum.dbm')
+    if os.path.isfile('scrum.dbm'):
+        os.remove('scrum.dbm')
 
 def show_scrum() -> str:
-    with dbm.open('scrum.dbm') as db:
-        start_time = time.ctime(int(db['start_time']))
-        sprint_length = int(db['sprint_length'])
-    return f'Sprints starting from {start_time} at {sprint_length}-day intervals.'
+    try:
+        with dbm.open('scrum.dbm') as db:
+            start_time = time.ctime(int(float(db['start_time'])))
+            sprint_length = int(db['sprint_length'])
+        return f'Sprints starting from {start_time} at {sprint_length}-day intervals.'
+    except Exception as e:
+        print(e)
+        return 'No current scrum.'
 
 # User stories
 def add_user_story(name: str, description: str):
@@ -59,7 +65,9 @@ def add_task(name: str, story: int, assignee: str, estimated_time: int):
     try:
         with dbm.open('scrum.dbm') as db:
             length = int(db['sprint_length'])
-            sprint = int((int(time.time()) - int(float(db['start_time']))) / length) + 1
+            # FIXME: Time zone difference => Ridiculous big sprint nubmer
+            #sprint = int((int(time.time()) - int(float(db['start_time']))) / length) + 1
+            sprint = 1
     except dbm.error:
         raise Exception('No existing sprint!')
     with sqlite3.connect('scrum.db') as conn:
@@ -68,6 +76,10 @@ def add_task(name: str, story: int, assignee: str, estimated_time: int):
             '(name, user_story, sprint, assignee, estimated_time) '
             'VALUES (?, ?, ?, ?, ?);',
             (name, story, sprint, assignee, estimated_time))
+
+def modify_task(id_: int, column: str, value: str):
+    with sqlite3.connect('scrum.db') as conn:
+        conn.execute(f'UPDATE backlog SET {column}=? WHERE id=?;', (value, id_))
 
 def complete_task(id_: str, actual_time: int):
     with sqlite3.connect('scrum.db') as conn:
