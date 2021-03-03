@@ -16,7 +16,7 @@ def handle_message(message):
     # tags is a list of tuples, [0] == word, [1] == part of speech
     # cleaning unnecessary words
     new_task = r"""new_task: {<TO.?|MD.?><VB.?>(<IN>)?<NN.?>}"""
-    noun_phrase = r"""noun_phrase: {<DT>?<JJ.*>*<NN.*>+}"""
+    noun_phrase = r"""noun_phrase: {<VBG>?<DT>?<JJ.*>*<NN.*>+}"""
     completed_task = r"""completion: {<PRP|noun_phrase|NN><VBZ><VBN>}"""
     task_parser = nltk.RegexpParser(new_task)
     np_parser = nltk.RegexpParser(noun_phrase)
