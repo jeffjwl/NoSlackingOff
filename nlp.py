@@ -27,12 +27,13 @@ def handle_message(message):
     for subtree in chunked.subtrees():
         if subtree.label() == 'naive_task':
             cur_task = handle_new_task(subtree)
-            if cur_task:
-                tasks.append(cur_task)
-        if subtree.label() == 'completion':
-            cur_task_id = handle_old_task(subtree)
-            if cur_task_id:
-                completed_tasks.append(cur_task_id)
+            tasks.append(cur_task)
+            #if cur_task:
+                #tasks.append(cur_task)
+        # if subtree.label() == 'completion':
+        #     cur_task_id = handle_old_task(subtree)
+        #     if cur_task_id:
+        #         completed_tasks.append(cur_task_id)
 
     return {'new_tasks' : tasks, 'completed_tasks' : completed_tasks}
 
@@ -68,9 +69,10 @@ def handle_new_task(subtree):
             key_words.append(l[0])
             # only
     cur_task = {'task': raw_task}
-    if not find_existing_tasks(key_words):
-        return cur_task
-    return None
+    return cur_task
+    #if not find_existing_tasks(key_words):
+    #    return cur_tas
+    #return None
 
 
 def handle_old_task(subtree):
