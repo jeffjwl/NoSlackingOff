@@ -74,12 +74,17 @@ app = App(
     token = config['token'],
     signing_secret = config['signingSecret'])
 
-#TODO: Add complete_confirm = confirmations.build_task_completed("task_id",message['channel'])
-#          add_confirm = confirmations.build_task_add("task_name",message['channel'])
-#       
-#       Use 'say(blocks = add_confirm, text = " ")' If the nlp detects a task that can be added
-#       Use 'say(blocks = complete_confirm, text = " ")' If the nlp detects a task that can be completed
-#      "task_id" and "task_name" should be the values that are fetched from nlp. 
+#TODO: When the nlp detects a task to be completed: 
+#           - Use 'complete_confirm = confirmations.build_task_completed(task_id,message['channel'])'
+#                - "task_id" is the value fetched from nlp for completed tasks
+#                - This function builds the block UI confirmation message
+#           - Then use 'say(blocks = complete_confirm, text = " ")' 
+#
+#      When the nlp detects a task to be added: 
+#           -Use 'add_confirm = confirmations.build_task_add(task_name,message['channel'])'
+#                - "task_name" is the value fetched from nlp for adding tasks
+#                - This function builds the block UI confirmation message
+#           - Then use 'say(blocks = add_confirm, text = " ")' 
 
 @app.message('')
 def on_message(message, say):
