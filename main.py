@@ -88,9 +88,23 @@ app = App(
 
 @app.message('')
 def on_message(message, say):
-    tasks = [(x['task'],) for x in parse_tasks(message['text'])]
-    with sqlite3.connect('tasks.db') as conn:
-        conn.executemany('INSERT INTO tasks VALUES (?, NULL, NULL)', tasks)
+    nlp_out = nlp.handle_message(message['text'])
+    add_detect = nlp_out['new tasks']
+    complete_detect = nlp_out['completed_tasks']
+
+    if(len(add_detect) != 0):
+        for task_name in add_detect:
+            add_confirm = confirmations.build_task_add(task_name,message['channel'])
+            say(blocks = add_confirm, text = " ")
+
+    if(len(complete_detect) != 0):
+        for task_id in complete_detect:
+            complete_confirm = confirmations.build_task_completed(task_id, message['channel'])
+            say(blocks = complete_confirm, text = " ")
+    
+    # tasks = [(x['task'],) for x in parse_tasks(message['text'])]
+    # with sqlite3.connect('tasks.db') as conn:
+    #     conn.executemany('INSERT INTO tasks VALUES (?, NULL, NULL)', tasks)
 
 @app.command('/scrum')
 def scrum_command(ack, say, command):
