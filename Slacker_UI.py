@@ -77,11 +77,11 @@ def build_home():
             for rowB in conn.execute("SELECT * FROM backlog"):
 
                 # FOR TESTING
-                print(row)
-                print("\n")
-                print(rowB)
-                print("\n")
-                print("---------")
+                #print(row)
+                #print("\n")
+                #print(rowB)
+                #print("\n")
+                #print("---------")
 
                 # basic task block
                 task_block =[

@@ -13,7 +13,8 @@ from slack_bolt import App
 
 # Local modules
 import db
-import Slacker_UI
+#import Slacker_UI
+from ui import create_home_view
 import confirmations
 import nlp
 
@@ -97,9 +98,11 @@ def on_message(message, say):
     add_detect = nlp_out['new_tasks']
     complete_detect = nlp_out['completed_tasks']
     print('New tasks: ', add_detect)
+    print('Completed tasks: ', complete_detect)
 
     if(len(add_detect) != 0):
         for task_name in add_detect:
+            task_name = task_name['task']
             add_confirm = confirmations.build_task_add(task_name,message['channel'])
             say(blocks = add_confirm, text = " ")
 
@@ -203,7 +206,7 @@ def backlog_command(ack, say, command):
 @app.event('app_home_opened')
 def on_app_home_opened(client, event, logger):
     try:
-        client.views_publish(user_id=event['user'], view=Slacker_UI.build_home())
+        client.views_publish(user_id=event['user'], view=create_home_view())
     except Exception as e:
         logger.error(f'Error publishing home tab: {e}')
 
@@ -238,7 +241,8 @@ def handle_modal_submission(ack, body, client, view, say):
     ack()
 
 @app.view("view_add")
-def handle_modal_submission_add(ack,body,view,say,client):
+def handle_modal_submission_add(ack,body,view,say):
+    ack()
     values = view["state"]["values"]
     user = body["user"]["id"]
     channel_id = view["blocks"][1]["block_id"]
@@ -253,7 +257,15 @@ def handle_modal_submission_add(ack,body,view,say,client):
             est_time = values[key]["expected_time"]["value"]
         elif "task_user" in values[key]:
             asignee = values[key]["task_user"]["selected_user"]
-    ack()
+            # TODO: Actually use WebAPI users.list
+            people = {
+                'U01K940PV7X': 'Charlie Zheng',
+                'U01K9EPFQLV': 'Jeff Lee',
+                'U01KL4ZE4AW': 'Patrick Pynadath',
+                'U01K9A4HACV': 'Molly Pribble'
+            }
+            if asignee in people.keys():
+                asignee = people[asignee]
 
     if story == "There are no user stories": 
         say(text = "Cannot add task: No user stories.", channel = channel_id)
@@ -261,7 +273,7 @@ def handle_modal_submission_add(ack,body,view,say,client):
 
     db.add_task(name,story,asignee,est_time)
     #say(text = f"{name} was just added under {story}. It is assigned to <@{asignee}> and is expected to take {est_time} hours.", channel = channel_id)
-    say('Task added!')
+    say('Task added!', channel=channel_id)
 
 @app.action('task_user')
 def dummy_function(ack):
