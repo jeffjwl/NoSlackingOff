@@ -239,111 +239,40 @@ def build_home():
 
     return ret_view
 
+def grade_me(x):
+    if x == 100:
+        return "A (your estimated time matched your actual time!)"
+    elif (x < 100 and x > 75) or (x > 100 and x <  125):
+        return "B (your actual time was off by less than 25% of your estimated time.)"
+    elif (x < 75 and x > 50) or (x > 125 and x <  150):
+        return "C (your actual time was off by less than 50% of your estimated time.)"
+    else:
+        return "D (your actual time was off by more thank 50% of your actual time.)"
+
+
+def task_summary(task):
+    percent = round((task[6]/task[5])*100)
+    ret_me = "Task: " + str(task[1]) + "\n" + "Team Member: " + str(task[4]) + "\n" + "Estimated Time: " + str(task[5]) + "\n" + "Actual Time: " + str(task[6]) + "\n" + "Backlog Grade: " + str(percent) + "% " + grade_me(percent) + "\n \n "
+    return ret_me
+
 
 # builds end of sprint summary
 def build_summary():
 
-    # message header
-    main_block = [
-    {
-    			"type": "divider"
-    		},
-    		{
-    			"type": "section",
-    			"text": {
-    				"type": "mrkdwn",
-    				"text": "*Here is your end-of-sprint summary:\n*"
-    			}
-    		},
-    		{
-    			"type": "divider"
-    		}
-        ]
-
-    block = main_block
+    ret_me = ""
 
     conn = sqlite3.connect('scrum.db')
     with conn:
 
-        # get user stories
-        for row in conn.execute("SELECT * FROM user_stories"):
+        # get tasks
+        for row in conn.execute("SELECT * FROM backlog"):
 
-            # basic story block
-            story_block =[
-            		 {
-                        "type": "header",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "" + row[1],
-                            "emoji": True
-                        }
-                    },
-                    {
-                        "type": "divider"
-                    }
-            	]
+            # if task is done...
+            if row[6] is not None:
 
-            block = block + story_block
+                ret_me = ret_me + task_summary(row)
 
-            # get tasks for appropriate user story
-            for rowB in conn.execute("SELECT * FROM backlog"):
-
-                # basic task block
-                task_block =[
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "Task: " + rowB[1]
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "Team Member Responsible: " + rowB[5] # update after get rid of spring, done_date
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "Status: " + task_status(rowB)
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "Expected Time: " + str(rowB[6]) # update after get rid of spring, done_date
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "Actual Time: " + str(rowB[7])  #update after get rid of spring, done_date
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*Burndown:* " + str(round((rowB[7]/rowB[6])*100)) + "%"  #update after get rid of spring, done_date
-                    }
-                },
-                {
-                    "type": "divider"
-                }
-                ]
-
-                # if task belongs to this user story...
-                if rowB[1] == row[0]:
-                        block = block + task_block
-
-    ret_view = json.dumps(view)
-
-    return ret_view
+    return ret_me
 
 # confirmation that scrum session has started
 scrum_confirm = {
