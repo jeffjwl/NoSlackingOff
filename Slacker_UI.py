@@ -77,11 +77,11 @@ def build_home():
             for rowB in conn.execute("SELECT * FROM backlog"):
 
                 # FOR TESTING
-                #print(row)
-                #print("\n")
-                #print(rowB)
-                #print("\n")
-                #print("---------")
+                # print(row)
+                # print("\n")
+                # print(rowB)
+                # print("\n")
+                # print("---------")
 
                 # basic task block
                 task_block =[
@@ -221,7 +221,7 @@ def build_home():
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "BURNDOWN \n" + "Expected: " +  str(rowD[5]) +  "\n Acutal: " + str(rowD[6])
+                    "text": "BURNDOWN \n" + "Expected: " +  str(rowD[5]) +  "\n Acutal: " + str(rowD[6]) + "\n " + str(task_summary_home(rowD))
                 }
             },
             {
@@ -240,6 +240,8 @@ def build_home():
     return ret_view
 
 def grade_me(x):
+    if x == -1:
+        return "F (you did not finish your task)"
     if x == 100:
         return "A (your estimated time matched your actual time!)"
     elif (x < 100 and x > 75) or (x > 100 and x <  125):
@@ -250,9 +252,25 @@ def grade_me(x):
         return "D (your actual time was off by more thank 50% of your actual time.)"
 
 
+def task_summary_home(task):
+
+    if task[6] is not None:
+        percent = round((task[6]/task[5])*100)
+        ret_me = "Backlog Grade: " + str(percent) + "% " + grade_me(percent) + "\n \n "
+    else:
+        percent = -1
+        ret_me = "Backlog Grade: 0% " + grade_me(percent) + "\n \n "
+    return ret_me
+
+
 def task_summary(task):
-    percent = round((task[6]/task[5])*100)
-    ret_me = "Task: " + str(task[1]) + "\n" + "Team Member: " + str(task[4]) + "\n" + "Estimated Time: " + str(task[5]) + "\n" + "Actual Time: " + str(task[6]) + "\n" + "Backlog Grade: " + str(percent) + "% " + grade_me(percent) + "\n \n "
+
+    if task[6] is not None:
+        percent = round((task[6]/task[5])*100)
+        ret_me = "Task: " + str(task[1]) + "\n" + "Team Member: " + str(task[4]) + "\n" + "Estimated Time: " + str(task[5]) + "\n" + "Actual Time: " + str(task[6]) + "\n" + "Backlog Grade: " + str(percent) + "% " + grade_me(percent) + "\n \n "
+    else:
+        percent = -1
+        ret_me = "Task: " + str(task[1]) + "\n" + "Team Member: " + str(task[4]) + "\n" + "Estimated Time: " + str(task[5]) + "\n" + "Actual Time: " + str(task[6]) + "\n" + "Backlog Grade: 0% " + grade_me(percent) + "\n \n "
     return ret_me
 
 
@@ -268,9 +286,7 @@ def build_summary():
         for row in conn.execute("SELECT * FROM backlog"):
 
             # if task is done...
-            if row[6] is not None:
-
-                ret_me = ret_me + task_summary(row)
+            ret_me = ret_me + task_summary(row)
 
     return ret_me
 
