@@ -13,7 +13,7 @@ from slack_bolt import App
 
 # Local modules
 import db
-#import Slacker_UI
+from Slacker_UI import build_home, build_summary
 from ui import create_home_view
 import confirmations
 import nlp
@@ -31,8 +31,7 @@ scrum_parser = argparse.ArgumentParser()#exit_on_error=False)
 scrum_subparsers = scrum_parser.add_subparsers(dest='subcommand')
 # start
 start_scrum_parser = scrum_subparsers.add_parser('start')
-start_scrum_parser.add_argument('sprint_length', type=int)
-start_scrum_parser.add_argument('-start, --start_time')
+start_scrum_parser.add_argument('-sprint', '--sprintlength', type=int, default=7)
 # end
 end_scrum_parser = scrum_subparsers.add_parser('end')
 # show
@@ -59,7 +58,7 @@ add_parser = backlog_subparsers.add_parser('add')
 add_parser.add_argument('name')
 add_parser.add_argument('-story', '--user_story', type=int)
 add_parser.add_argument('-a', '--assignee')
-add_parser.add_argument('-eta', '--estimated_time', type=int)
+add_parser.add_argument('-eta', '--estimated_time', type=int, default=1)
 # complete
 complete_parser = backlog_subparsers.add_parser('complete')
 complete_parser.add_argument('id', type=int)
@@ -108,6 +107,7 @@ def on_message(message, say):
 
     if(len(complete_detect) != 0):
         for task_id in complete_detect:
+            print('Task ID', task_id)
             complete_confirm = confirmations.build_task_completed(task_id, message['channel'])
             say(blocks = complete_confirm, text = " ")
     
@@ -115,7 +115,7 @@ def on_message(message, say):
     # with sqlite3.connect('tasks.db') as conn:
     #     conn.executemany('INSERT INTO tasks VALUES (?, NULL, NULL)', tasks)
 
-@app.command('/scrum')
+@app.command('/project')
 def scrum_command(ack, say, command):
     ack()
     args = split_args(command['text'])
@@ -130,11 +130,12 @@ def scrum_command(ack, say, command):
             start_time = (time.mktime(time.strptime(args.start_time, '%Y-%m-%d')))
         except:
             start_time = int(time.time())
-        db.start_scrum(start_time, args.sprint_length)
-        say('Scrum started!')
+        db.start_scrum(start_time, args.sprintlength)
+        say('Project started!')
+        say(db.show_scrum())
     elif args.subcommand == 'end':
         db.end_scrum()
-        say('Scrum ended!')
+        say('Project ended!')
     elif args.subcommand == 'show':
         say(db.show_scrum())
 
@@ -203,10 +204,15 @@ def backlog_command(ack, say, command):
         db.modify_task(args.id, column, value)
         say('Task modified!')
 
+@app.command('/burndown')
+def burndown_command(ack, say, command):
+    ack()
+    say(build_summary())
+
 @app.event('app_home_opened')
 def on_app_home_opened(client, event, logger):
     try:
-        client.views_publish(user_id=event['user'], view=create_home_view())
+        client.views_publish(user_id=event['user'], view=build_home())
     except Exception as e:
         logger.error(f'Error publishing home tab: {e}')
 
@@ -236,7 +242,7 @@ def handle_modal_submission(ack, body, client, view, say):
     time = view["state"]["values"]["actual_time"]["actual_task_time"]["value"]
     task_id = view["blocks"][0]["text"]["text"].split(' ')[0]
     channel_id = view["blocks"][1]["block_id"]
-    say(text=f"{task_id} completed in {time} hours. Great job!", channel = channel_id)
+    say(text=f"*{db.get_task(task_id)}* completed in {time} hours. Great job!", channel = channel_id)
     db.complete_task(task_id, time) 
     ack()
 

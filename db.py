@@ -83,6 +83,10 @@ def modify_task(id_: int, column: str, value: str):
 
 def complete_task(id_: str, actual_time: int):
     with sqlite3.connect('scrum.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT estimated_time FROM backlog WHERE id=?')
+        estimated_time = cursor.fetchone()[0]
+        actual_time = actual_time if actual_time else estimated_time
         conn.execute(
             'UPDATE backlog SET done_date=?, actual_time=? WHERE id=?;',
             (time.time(), actual_time, id_))
@@ -90,6 +94,12 @@ def complete_task(id_: str, actual_time: int):
 def remove_task(id_: int):
     with sqlite3.connect('scrum.db') as conn:
         conn.execute('DELETE FROM backlog WHERE id=?;', (id_,))
+
+def get_task(id_: int) -> str:
+    with sqlite3.connect('scrum.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT name FROM backlog WHERE id=?;', (id_,))
+        return cursor.fetchone()[0]
 
 def show_backlog() -> str:
     result = ''

@@ -46,9 +46,10 @@ def handle_message(message):
 
 # checks if a task is redundant
 def find_existing_tasks(key_words):
+    print(key_words)
     with sqlite3.connect('scrum.db') as conn:
-        for i, row in enumerate(conn.execute("select name from backlog")):
-            tokenized_task = word_tokenize(row)
+        for row in conn.execute("select id, name from backlog"):
+            tokenized_task = word_tokenize(row[1])
             tags = nltk.pos_tag(tokenized_task)
             row_key_words = []
             for tag in tags:
@@ -56,7 +57,7 @@ def find_existing_tasks(key_words):
                     row_key_words.append(tag[0])
             for word in key_words:
                 if word in row_key_words:
-                    return i
+                    return row[0]
     return False
 
 
@@ -92,6 +93,6 @@ def handle_old_task(subtree):
                     key_words.append(l[1])
         # given the key words, need to check if they are in the database
         matching_task = find_existing_tasks(key_words)
-        if matching_task != None:
+        if matching_task:
             return matching_task
     return None

@@ -1,14 +1,14 @@
-import dbm
 import sqlite3
 import time
 import os
+from db import get_task
 
 def build_task_completed(task_id, channel_id):
 	completion_detected = [{
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": f"Slacker thinks that you completed *{task_id}*. Would you like to remove this from your sprint log?"
+				"text": f"Slacker thinks that you completed *{get_task(task_id)}*. Would you like to remove this from your sprint log?"
 			}
 		},
 		{
