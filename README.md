@@ -1,11 +1,28 @@
 # NoSlackingOff
+Automatic scrum management in Slack.
+Features include:
+1. Starting & ending projects
+2. Setting custom sprint durations
+3. Managing user stories
+4. Managing tasks on the backlog (user assignments, time estimation)
+5. NLP predictions for backlog items
+6. Full-featured CLI with Slack slash commands
+6. Burndowns
 
-Slacker is an app that manages your scrum directly in slack.
+## CLI Commands
+```
+/project [start/end/show]
+	start [-sprint/--sprintlength DAYS]
 
-You can:
-1. start/end a project
-2. add user stories to  your product backlog
-3. add tasks to your sprint log and assign them to a specific teammate
-4. view burndown data for each of your taskson your sprint log
-5. view your sprint log in chat or on the homepage
+/userstory [add/remove]
+	add NAME DESCRIPTION
+	remove ID
 
+/backlog [add/complete/remove/show]
+	add NAME [-story/--userstory STORY] [-a/--assignee NAME] [-eta/--estimated_time HOURS]
+	remove ID
+	complete ID [-ata/--actual_time HOURS]
+	modify ID PROPERTY VALUE
+
+/burndown
+```
