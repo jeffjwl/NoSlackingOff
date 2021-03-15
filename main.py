@@ -5,6 +5,7 @@ import io
 import json
 import os
 import re
+import sched
 import sqlite3
 import time
 
@@ -19,6 +20,10 @@ import confirmations
 import nlp
 
 config = json.load(open('config.json'))
+
+app = App(
+    token = config['token'],
+    signing_secret = config['signingSecret'])
 
 # Argument parsing
 arg_pattern = re.compile(r'[\w\-]+|"[\w\s\-]+"')
@@ -74,21 +79,12 @@ modify_parser.add_argument('id', type=int)
 modify_parser.add_argument('column', choices=['name', 'assignee', 'story', 'eta', 'ata']) #TODO: More choices
 modify_parser.add_argument('value')
 
-app = App(
-    token = config['token'],
-    signing_secret = config['signingSecret'])
-
-#TODO: When the nlp detects a task to be completed: 
-#           - Use 'complete_confirm = confirmations.build_task_completed(task_id,message['channel'])'
-#                - "task_id" is the value fetched from nlp for completed tasks
-#                - This function builds the block UI confirmation message
-#           - Then use 'say(blocks = complete_confirm, text = " ")' 
-#
-#      When the nlp detects a task to be added: 
-#           -Use 'add_confirm = confirmations.build_task_add(task_name,message['channel'])'
-#                - "task_name" is the value fetched from nlp for adding tasks
-#                - This function builds the block UI confirmation message
-#           - Then use 'say(blocks = add_confirm, text = " ")' 
+# Scheduling
+#sprint_scheduler = sched.scheduler()
+#def scheduled_sprint_end():
+#    with dbm.open('scrum.dbm', 'n') as db:
+#        sprint_length = int(db['sprint_length'])
+#    sprint_scheduler.enter(sprint_length * 86400, 1, scheduled_sprint_end)
 
 @app.message('')
 def on_message(message, say):
@@ -127,7 +123,7 @@ def scrum_command(ack, say, command):
     # Subcommands
     if args.subcommand == 'start':
         try:
-            start_time = (time.mktime(time.strptime(args.start_time, '%Y-%m-%d')))
+            start_time = int(time.mktime(time.strptime(args.start_time, '%m-%d-%Y')))
         except:
             start_time = int(time.time())
         db.start_scrum(start_time, args.sprintlength)
@@ -211,10 +207,11 @@ def burndown_command(ack, say, command):
 
 @app.event('app_home_opened')
 def on_app_home_opened(client, event, logger):
-    try:
-        client.views_publish(user_id=event['user'], view=build_home())
-    except Exception as e:
-        logger.error(f'Error publishing home tab: {e}')
+    client.views_publish(user_id=event['user'], view=build_home())
+    #try:
+    #    client.views_publish(user_id=event['user'], view=build_home())
+    #except Exception as e:
+    #    logger.error(f'Error publishing home tab: {e}')
 
 @app.action('task_add_confirm')
 def open_add_modal(ack,body,client,action):
@@ -277,6 +274,7 @@ def handle_modal_submission_add(ack,body,view,say):
         say(text = "Cannot add task: No user stories.", channel = channel_id)
         return
 
+    story = db.get_user_story(story)
     db.add_task(name,story,asignee,est_time)
     #say(text = f"{name} was just added under {story}. It is assigned to <@{asignee}> and is expected to take {est_time} hours.", channel = channel_id)
     say('Task added!', channel=channel_id)

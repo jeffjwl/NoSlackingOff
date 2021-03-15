@@ -58,16 +58,19 @@ def show_user_stories() -> str:
             result = result + f'{row[0]}. {row[1]}: {row[2]}\n'
     return result if result else 'No user stories!'
 
+def get_user_story(name: str) -> int:
+    with sqlite3.connect('scrum.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM user_stories WHERE name=?;', (name,))
+        return cursor.fetchone()[0]
 
 # Backlog
 def add_task(name: str, story: int, assignee: str, estimated_time: int):
     try:
         with dbm.open('scrum.dbm') as db:
+            start_time = int(db['start_time'])
             length = int(db['sprint_length'])
-            start_time = float(db['start_time'])
-            # FIXME: Time zone difference => Ridiculous big sprint nubmer
-            #sprint = int((int(time.time()) - int(float(db['start_time']))) / length) + 1
-            sprint = 1
+            sprint = int((time.time() - start_time) / (length * 86400)) + 1
     except dbm.error:
         raise Exception('No existing sprint!')
     with sqlite3.connect('scrum.db') as conn:
@@ -83,10 +86,11 @@ def modify_task(id_: int, column: str, value: str):
 
 def complete_task(id_: str, actual_time: int):
     with sqlite3.connect('scrum.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT estimated_time FROM backlog WHERE id=?')
-        estimated_time = cursor.fetchone()[0]
-        actual_time = actual_time if actual_time else estimated_time
+        if not actual_time:
+            cursor = conn.cursor()
+            cursor.execute('SELECT estimated_time FROM backlog WHERE id=?', (id_,))
+            actual_time = cursor.fetchone()[0]
+            cursor.close()
         conn.execute(
             'UPDATE backlog SET done_date=?, actual_time=? WHERE id=?;',
             (time.time(), actual_time, id_))

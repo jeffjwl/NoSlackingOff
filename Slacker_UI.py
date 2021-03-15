@@ -119,27 +119,27 @@ def build_home():
                 ]
 
                 # if task belongs to this user story...
-                if rowB[7] == row[0] and row[6] is None:
+                if rowB[7] == row[0] and rowB[6] is None:
                         block = block + task_block
 
-            #  unallocated story block
-            unallocated_story_block = [
-            		 {
-                        "type": "header",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Misc.",
-                            "emoji": True
-                        }
-                    },
-                    {
-                        "type": "divider"
+        #  unallocated story block
+        unallocated_story_block = [
+                     {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Misc.",
+                        "emoji": True
                     }
-            	]
+                },
+                {
+                    "type": "divider"
+                }
+            ]
 
-            block  = block + unallocated_story_block
+        block  = block + unallocated_story_block
 
-        # get tasks for anallocated user story
+    # get tasks for anallocated user story
         for rowC in conn.execute("SELECT * FROM backlog"):
 
             # basic task block
